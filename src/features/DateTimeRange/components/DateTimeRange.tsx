@@ -1,7 +1,8 @@
 import { DateTimePicker } from '../../DateTimePicker'
 import { resolveRangeFieldErrors } from '../repository'
-import { useDateTimeRangeController } from '../hooks'
-import type { DateTimeRangeProps } from '../types'
+import { useDateTimeRangeController, useDateTimeRangePresets } from '../hooks'
+import type { DateTimeRangePresetKey, DateTimeRangeProps } from '../types'
+import { DateTimeRangePresets } from './DateTimeRangePresets'
 import './DateTimeRange.css'
 
 export function DateTimeRange(props: DateTimeRangeProps) {
@@ -32,6 +33,15 @@ export function DateTimeRange(props: DateTimeRangeProps) {
     minDateTime,
     maxDateTime,
     onValidationChange,
+    showPresets = false,
+    preset,
+    defaultPreset,
+    onPresetChange,
+    presetOptions,
+    presetPlaceholder,
+    presetLabel,
+    presetClassName,
+    timezone = 'UTC',
     ...pickerProps
   } = props
 
@@ -60,6 +70,7 @@ export function DateTimeRange(props: DateTimeRangeProps) {
     minDateTime,
     maxDateTime,
     onValidationChange,
+    timezone,
     ...pickerProps,
   })
 
@@ -69,6 +80,7 @@ export function DateTimeRange(props: DateTimeRangeProps) {
     validationResult,
     startConstraints,
     endConstraints,
+    applyRangeValue,
     handleStartChange,
     handleEndChange,
     handleStartAccept,
@@ -77,6 +89,16 @@ export function DateTimeRange(props: DateTimeRangeProps) {
     handleEndValidationChange,
     sharedPickerConfig,
   } = controller
+
+  const presets = useDateTimeRangePresets({
+    enabled: showPresets,
+    preset,
+    defaultPreset,
+    onPresetChange,
+    presetOptions,
+    timezone: sharedPickerConfig.timezone ?? timezone,
+    value: rangeValue,
+  })
 
   const rangeHelperText =
     helperText ??
@@ -97,9 +119,16 @@ export function DateTimeRange(props: DateTimeRangeProps) {
     validationResult,
   })
 
+  const handlePresetSelect = (key: DateTimeRangePresetKey) => {
+    const nextRange = presets.resolvePresetRange(key)
+    presets.setPreset(key)
+    applyRangeValue(nextRange, { source: 'preset', change: { source: 'unknown' } })
+    onAccept?.(nextRange, { source: 'preset', change: { source: 'unknown' } })
+  }
+
   return (
     <div
-      className={['dtr', className].filter(Boolean).join(' ')}
+      className={['dtr', showPresets ? 'dtr--with-presets' : '', className].filter(Boolean).join(' ')}
       data-disabled={disabled || undefined}
       data-error={hasError || undefined}
       data-mode={sharedPickerConfig.mode}
@@ -142,6 +171,18 @@ export function DateTimeRange(props: DateTimeRangeProps) {
           minDateTime={endConstraints.minDateTime}
           maxDateTime={endConstraints.maxDateTime}
         />
+
+        {showPresets && (
+          <DateTimeRangePresets
+            label={presetLabel}
+            value={presets.preset}
+            options={presets.options}
+            placeholder={presetPlaceholder}
+            disabled={disabled || readOnly}
+            className={presetClassName}
+            onChange={handlePresetSelect}
+          />
+        )}
       </div>
 
       {showTextUnderFieldWhenError && rangeHelperText != null && (

@@ -5,6 +5,8 @@ export type {
   DateTimeRangeValidationResult,
   DateTimeRangeFieldValidation,
   DateTimeRangeLimits,
+  DateTimeRangePresetKey,
+  DateTimeRangePresetOption,
   DateTimeRangeProps,
   DateTimeRangeConstraintMode,
   DateTimeRangeSharedConfig,

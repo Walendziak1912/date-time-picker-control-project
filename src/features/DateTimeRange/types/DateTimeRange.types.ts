@@ -17,8 +17,21 @@ export type DateTimeRangeValue = {
 }
 
 export type DateTimeRangeChangeContext = {
-  source: 'start' | 'end'
+  source: 'start' | 'end' | 'preset'
   change: DateTimeChangeContext
+}
+
+export type DateTimeRangePresetKey =
+  | 'today'
+  | 'yesterday'
+  | 'thisWeek'
+  | 'lastWeek'
+  | 'thisMonth'
+  | 'lastMonth'
+
+export type DateTimeRangePresetOption = {
+  key: DateTimeRangePresetKey
+  label: string
 }
 
 export type DateTimeRangeValidationReason = 'invalidFormat' | 'invalidRange'
@@ -123,6 +136,17 @@ export type DateTimeRangeProps = SharedPickerProps & {
   showTextUnderFieldWhenError?: boolean
   showBorderFieldWhenError?: boolean
   onValidationChange?: (result: DateTimeRangeValidationResult) => void
+  /** Włącza combobox z presetami obok pól zakresu. Domyślnie false. */
+  showPresets?: boolean
+  /** Wybrany preset (kontrolowany). null = zakres niestandardowy. */
+  preset?: DateTimeRangePresetKey | null
+  defaultPreset?: DateTimeRangePresetKey | null
+  onPresetChange?: (preset: DateTimeRangePresetKey | null) => void
+  /** Nadpisanie domyślnej listy presetów */
+  presetOptions?: DateTimeRangePresetOption[]
+  presetPlaceholder?: string
+  presetLabel?: ReactNode
+  presetClassName?: string
 }
 
 export type DateTimeRangeConstraintMode = DateTimePickerMode

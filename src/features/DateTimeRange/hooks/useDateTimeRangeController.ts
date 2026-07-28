@@ -183,6 +183,7 @@ export function useDateTimeRangeController(props: DateTimeRangeProps) {
     validationResult,
     startConstraints,
     endConstraints,
+    applyRangeValue: commitValue,
     handleStartChange,
     handleEndChange,
     handleStartAccept,

@@ -195,8 +195,12 @@ export function useDateTimePickerController({
     [ampm, format, locale, normalizeValue, reportValidation, timezone],
   )
 
+  const prevControlledValueRef = useRef<number | null | undefined>(undefined)
+
   useEffect(() => {
-    if (!focused && !fieldError) setInputText(formattedValue)
+    if (!focused && !fieldError) {
+      setInputText(formattedValue)
+    }
   }, [formattedValue, focused, fieldError])
 
   useEffect(() => {
@@ -208,8 +212,23 @@ export function useDateTimePickerController({
 
   useEffect(() => {
     if (!isControlled) return
+
+    const nextTime = value?.getTime() ?? null
+
+    if (prevControlledValueRef.current === undefined) {
+      prevControlledValueRef.current = nextTime
+      setDraft(value)
+      return
+    }
+
+    if (nextTime === prevControlledValueRef.current) return
+
+    prevControlledValueRef.current = nextTime
     setDraft(value)
-  }, [isControlled, value])
+    setFieldError(false)
+    setInputText(formattedValue)
+    reportValidation(true)
+  }, [isControlled, value, formattedValue, reportValidation])
 
   const emitChange = useCallback(
     (next: Date | null, source: 'field' | 'view' | 'unknown') => {

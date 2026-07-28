@@ -5,6 +5,8 @@ export type {
   DateTimeRangeChangeContext,
   DateTimeRangeValidationResult,
   DateTimeRangeLimits,
+  DateTimeRangePresetKey,
+  DateTimeRangePresetOption,
 } from './types'
 export {
   addCalendarDays,
@@ -15,4 +17,7 @@ export {
   normalizeRangeValue,
   buildStartConstraints,
   buildEndConstraints,
+  DEFAULT_PRESET_OPTIONS,
+  getPresetRange,
+  matchPreset,
 } from './repository'

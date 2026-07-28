@@ -19,3 +19,8 @@ export {
   resolveRangeFieldErrors,
   VALID_FIELD,
 } from './validationUtils'
+export {
+  DEFAULT_PRESET_OPTIONS,
+  getPresetRange,
+  matchPreset,
+} from './rangePresets'
