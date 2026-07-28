@@ -30,3 +30,37 @@ If you are developing a production application, we recommend enabling type-aware
 ```
 
 See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+
+
+## Domyślne formaty dat
+
+| Konfiguracja                                           | Domyślny format                                                                           |
+| ------------------------------------------------------ | ----------------------------------------------------------------------------------------- |
+| `mode="date"`                                          | `dd.MM.yyyy`                                                                              |
+| `mode="time"`                                          | `HH:mm`                                                                                   |
+| `mode="time"` + `showSeconds`                          | `HH:mm:ss`                                                                                |
+| `mode="time"` + `showSeconds` + `showMilliseconds`     | `HH:mm:ss:SSS`                                                                            |
+| `mode="datetime"` — domyślny                           | `dd.MM.yyyy HH:mm`                                                                        |
+| `mode="datetime"` + `showSeconds`                      | `dd.MM.yyyy HH:mm:ss`                                                                     |
+| `mode="datetime"` + `showSeconds` + `showMilliseconds` | `dd.MM.yyyy HH:mm:ss:SSS`                                                                 |
+| Dowolny tryb + `ampm={true}`                           | Zamiast `HH` używane jest `hh`, a na końcu dodawane jest `a`, np. `dd.MM.yyyy hh:mm:ss a` |
+
+<DateTimePicker
+  value={value}
+  onChange={setValue}
+  format="yyyy-MM-dd HH:mm"
+/>
+
+<DateTimeRange
+  value={range}
+  onChange={setRange}
+  format="yyyy-MM-dd'T'HH:mm:ss.SSS"
+/>
+
+Różne formaty na range
+<DateTimeRange
+  value={range}
+  onChange={setRange}
+  startProps={{ format: 'dd.MM.yyyy HH:mm' }}
+  endProps={{ format: 'dd.MM.yyyy HH:mm:ss' }}
+/>

@@ -1,18 +1,18 @@
-import { useState } from 'react'
-import { DateTimePicker, serializeBackendUtc } from '../index'
-import { useExampleToast } from './useExampleToast'
-import { useFieldValidation } from './useFieldValidation'
-import './DateTimePickerExample.css'
+import { useState } from "react";
+import { DateTimePicker, serializeBackendUtc } from "../index";
+import { useExampleToast } from "./useExampleToast";
+import { useFieldValidation } from "./useFieldValidation";
+import "./DateTimePickerExample.css";
 
 export function DateTimePickerExample() {
-  const { toastElement, showError } = useExampleToast()
-  const datetimeValidation = useFieldValidation(showError)
-  const dateValidation = useFieldValidation(showError)
-  const timeValidation = useFieldValidation(showError)
+  const { toastElement, showError } = useExampleToast();
+  const datetimeValidation = useFieldValidation(showError);
+  const dateValidation = useFieldValidation(showError);
+  const timeValidation = useFieldValidation(showError);
 
-  const [datetime, setDatetime] = useState<Date | null>(new Date())
-  const [dateOnly, setDateOnly] = useState<Date | null>(new Date())
-  const [timeOnly, setTimeOnly] = useState<Date | null>(new Date())
+  const [datetime, setDatetime] = useState<Date | null>(new Date());
+  const [dateOnly, setDateOnly] = useState<Date | null>(new Date());
+  const [timeOnly, setTimeOnly] = useState<Date | null>(new Date());
 
   return (
     <>
@@ -39,11 +39,11 @@ export function DateTimePickerExample() {
               showMilliseconds
             />
             <p className="selected-value">
-              Wartość: {datetime ? datetime.toISOString() : 'brak'}
+              Wartość: {datetime ? datetime.toISOString() : "brak"}
             </p>
             <p className="selected-value">
-              ISO UTC:{' '}
-              <code>{datetime ? serializeBackendUtc(datetime) : 'brak'}</code>
+              ISO UTC:{" "}
+              <code>{datetime ? serializeBackendUtc(datetime) : "brak"}</code>
             </p>
           </div>
 
@@ -57,9 +57,9 @@ export function DateTimePickerExample() {
               onValidationChange={dateValidation.onValidationChange}
             />
             <p className="selected-value">
-              Wartość:{' '}
+              Wartość:{" "}
               <code>
-                {dateOnly ? dateOnly.toLocaleDateString('pl-PL') : 'brak'}
+                {dateOnly ? dateOnly.toLocaleDateString("pl-PL") : "brak"}
               </code>
             </p>
           </div>
@@ -73,14 +73,14 @@ export function DateTimePickerExample() {
               error={timeValidation.error}
               onValidationChange={timeValidation.onValidationChange}
               showSeconds
+              showMilliseconds
             />
             <p className="selected-value">
-              Wartość:{' '}
-              <code>{timeOnly ? timeOnly.toISOString() : 'brak'}</code>
+              Wartość: <code>{timeOnly ? timeOnly.toISOString() : "brak"}</code>
             </p>
           </div>
         </div>
       </section>
     </>
-  )
+  );
 }

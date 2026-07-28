@@ -221,7 +221,6 @@ export function defaultFormat(
   if (mode === "time") return time;
   return `dd.MM.yyyy ${time}`;
 }
-
 function pad(n: number): string {
   return String(n).padStart(2, "0");
 }

@@ -436,6 +436,7 @@ export function useDateTimePickerController({
     helperText ?? (fieldError ? invalidFormatMessage : null)
 
   const inputValue = focused || fieldError ? inputText : formattedValue
+  const inputSize = Math.max(inputValue.length, format.length, 1)
 
   return {
     rootRef,
@@ -447,6 +448,7 @@ export function useDateTimePickerController({
     month,
     inputText,
     inputValue,
+    inputSize,
     hasError,
     fieldError,
     fieldErrorMessage,

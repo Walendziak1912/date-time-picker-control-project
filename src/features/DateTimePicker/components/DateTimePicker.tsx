@@ -36,6 +36,7 @@ export function DateTimePicker(props: DateTimePickerProps) {
     month,
     inputText,
     inputValue,
+    inputSize,
     hasError,
     fieldErrorMessage,
     text,
@@ -98,6 +99,7 @@ export function DateTimePicker(props: DateTimePickerProps) {
           id={`${labelId}-input`}
           className="dtp-input"
           name={name}
+          size={inputSize}
           value={inputValue}
           readOnly={readOnly}
           disabled={disabled}
