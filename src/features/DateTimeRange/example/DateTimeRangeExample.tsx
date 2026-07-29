@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import { useExampleToast } from "../../DateTimePicker/example/useExampleToast";
+import { useAppToast } from "../../../hooks/useAppToast";
 import { serializeBackendUtc } from "../../DateTimePicker";
 import { DateTimeRange, getMaxEndForStart, getPresetRange } from "../index";
 import type { DateTimeRangePresetKey, DateTimeRangeValue } from "../types";
@@ -32,7 +32,7 @@ function formatMaxEnd(start: Date | null) {
 }
 
 export function DateTimeRangeExample() {
-  const { toastElement, showError } = useExampleToast();
+  const { toastElement, showError } = useAppToast();
   const toastValidation = useRangeFieldValidation(showError);
 
   const [toastRange, setToastRange] = useState<DateTimeRangeValue>({
@@ -80,10 +80,10 @@ export function DateTimeRangeExample() {
     <>
       {toastElement}
 
-      <section className="dtr-example">
-        <header className="dtr-example-intro">
+      <section className="feature-example dtr-example">
+        <header className="feature-example-intro">
           <h1>DateTimeRange</h1>
-          <p className="dtr-example-subtitle">
+          <p className="feature-example-subtitle">
             Zakres dat oparty na dwóch kontrolkach DateTimePicker. Limity:{" "}
             <code>maxRangeDays</code>, <code>maxRangeHours</code>,{" "}
             <code>maxRangeMinutes</code>, <code>maxRangeMonths</code>. Prop{" "}
@@ -94,8 +94,8 @@ export function DateTimeRangeExample() {
           </p>
         </header>
 
-        <div className="dtr-example-stack">
-          <div className="dtr-example-block">
+        <div className="feature-example-stack">
+          <div className="feature-example-block">
             <DateTimeRange
               value={toastRange}
               onChange={setToastRange}
@@ -111,7 +111,7 @@ export function DateTimeRangeExample() {
             </p>
           </div>
 
-          <div className="dtr-example-block">
+          <div className="feature-example-block">
             <DateTimeRange
               value={presetsRange}
               onChange={setPresetsRange}
@@ -128,7 +128,7 @@ export function DateTimeRangeExample() {
             </p>
           </div>
 
-          <div className="dtr-example-block">
+          <div className="feature-example-block">
             <DateTimeRange
               mode="date"
               value={dateRange}
@@ -141,7 +141,7 @@ export function DateTimeRangeExample() {
             </p>
           </div>
 
-          <div className="dtr-example-block">
+          <div className="feature-example-block">
             <DateTimeRange
               value={datetimeRange}
               onChange={setDatetimeRange}
@@ -154,14 +154,12 @@ export function DateTimeRangeExample() {
             </p>
           </div>
 
-          <div className="dtr-example-block">
+          <div className="feature-example-block">
             <DateTimeRange
               value={preciseRange}
               onChange={setPreciseRange}
-              startLabel="Od (precyzyjnie)"
-              endLabel="Do (precyzyjnie)"
-              showSeconds
-              showMilliseconds
+              startLabel="Od"
+              endLabel="Do"
               showPresets
             />
             <p className="selected-value">
@@ -182,7 +180,7 @@ export function DateTimeRangeExample() {
             </p>
           </div>
 
-          <div className="dtr-example-block">
+          <div className="feature-example-block">
             <DateTimeRange
               mode="date"
               value={limitedRange}
@@ -197,7 +195,7 @@ export function DateTimeRangeExample() {
             </p>
           </div>
 
-          <div className="dtr-example-block">
+          <div className="feature-example-block">
             <DateTimeRange
               value={precisionRange}
               onChange={setPrecisionRange}
@@ -229,7 +227,7 @@ export function DateTimeRangeExample() {
             </p>
           </div>
 
-          <div className="dtr-example-block">
+          <div className="feature-example-block">
             <DateTimeRange
               value={hoursRange}
               onChange={setHoursRange}

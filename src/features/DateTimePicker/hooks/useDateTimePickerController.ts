@@ -18,6 +18,7 @@ import {
   resolveLocaleText,
   resolvePickerSections,
   setDatePartTz,
+  startOfDayTz,
   withoutSecondsTz,
   withoutMillisecondsTz,
   nowInTimezone,
@@ -175,11 +176,14 @@ export function useDateTimePickerController({
     (next: Date | null): Date | null => {
       if (!next) return next
       let result = next
+      if (mode === 'date') {
+        result = startOfDayTz(result, timezone)
+      }
       if (!resolvedShowSeconds) result = withoutSecondsTz(result, timezone)
       if (!resolvedShowMilliseconds) result = withoutMillisecondsTz(result, timezone)
       return result
     },
-    [resolvedShowSeconds, resolvedShowMilliseconds, timezone],
+    [mode, resolvedShowSeconds, resolvedShowMilliseconds, timezone],
   )
 
   const applyValidValue = useCallback(

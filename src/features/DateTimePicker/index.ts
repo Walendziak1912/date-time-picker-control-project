@@ -5,5 +5,21 @@ export type {
   DateTimePickerTimezone,
   DateTimeValidationResult,
   DateTimeChangeContext,
+  DateTimePickerLocaleText,
+  TimePickerVariant,
+  TimeSteps,
 } from './types'
-export { parseBackendUtc, serializeBackendUtc } from './repository'
+export {
+  parseBackendUtc,
+  serializeBackendUtc,
+  startOfDay,
+  createInstant,
+  getDate,
+  getHours,
+  getMilliseconds,
+  getMinutes,
+  getMonth,
+  getSeconds,
+  getYear,
+  startOfDayTz,
+} from './repository'

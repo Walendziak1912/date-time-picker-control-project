@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
-import type { DateTimeChangeContext, DateTimeValidationResult } from '../../DateTimePicker/types'
+import type { DateTimeChangeContext, DateTimeValidationResult } from '../../DateTimePicker'
 import {
   buildEndConstraints,
   buildRangeValidationResult,

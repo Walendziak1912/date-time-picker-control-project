@@ -1,4 +1,4 @@
-import type { DateTimeValidationResult } from '../../DateTimePicker/types'
+import type { DateTimeValidationResult } from '../../DateTimePicker'
 import type { DateTimeRangeValidationResult } from '../types'
 
 export const VALID_FIELD: DateTimeValidationResult = { valid: true }

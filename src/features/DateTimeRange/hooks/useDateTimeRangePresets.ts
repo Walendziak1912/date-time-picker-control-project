@@ -6,7 +6,7 @@ import type {
   DateTimeRangePresetOption,
   DateTimeRangeValue,
 } from '../types'
-import type { DateTimePickerTimezone } from '../../DateTimePicker/types'
+import type { DateTimePickerTimezone } from '../../DateTimePicker'
 
 type UseDateTimeRangePresetsOptions = {
   enabled: boolean

@@ -2,14 +2,14 @@ import type { ReactNode } from 'react'
 
 import type {
   DateTimeChangeContext,
+  DateTimePickerLocaleText,
   DateTimePickerMode,
   DateTimePickerProps,
   DateTimePickerTimezone,
   DateTimeValidationResult,
   TimePickerVariant,
   TimeSteps,
-} from '../../DateTimePicker/types'
-import type { DateTimePickerLocaleText } from '../../DateTimePicker/types/localeText.types'
+} from '../../DateTimePicker'
 
 export type DateTimeRangeValue = {
   start: Date | null

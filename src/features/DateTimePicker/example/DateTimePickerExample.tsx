@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { DateTimePicker, serializeBackendUtc } from "../index";
-import { useExampleToast } from "./useExampleToast";
+import { useAppToast } from "../../../hooks/useAppToast";
 import { useFieldValidation } from "./useFieldValidation";
 import "./DateTimePickerExample.css";
 
 export function DateTimePickerExample() {
-  const { toastElement, showError } = useExampleToast();
+  const { toastElement, showError } = useAppToast();
   const datetimeValidation = useFieldValidation(showError);
   const dateValidation = useFieldValidation(showError);
   const timeValidation = useFieldValidation(showError);
@@ -18,17 +18,13 @@ export function DateTimePickerExample() {
     <>
       {toastElement}
 
-      <section className="dtp-example">
-        <header className="dtp-example-intro">
+      <section className="feature-example dtp-example">
+        <header className="feature-example-intro">
           <h1>DateTimePicker</h1>
-          <p className="dtp-example-subtitle">
-            Walidacja formatu z Toastem — wpisz błędną datę i zatwierdź pole
-            (Enter lub blur).
-          </p>
         </header>
 
-        <div className="dtp-example-stack">
-          <div className="dtp-example-block">
+        <div className="feature-example-stack">
+          <div className="feature-example-block">
             <DateTimePicker
               label="Data + czas"
               value={datetime}
@@ -39,15 +35,15 @@ export function DateTimePickerExample() {
               showMilliseconds
             />
             <p className="selected-value">
-              Wartość: {datetime ? datetime.toISOString() : "brak"}
+              Wartość: <code>{datetime ? datetime.toISOString() : "brak"}</code>
             </p>
             <p className="selected-value">
-              ISO UTC:{" "}
+              ISO UTC:
               <code>{datetime ? serializeBackendUtc(datetime) : "brak"}</code>
             </p>
           </div>
 
-          <div className="dtp-example-block">
+          <div className="feature-example-block">
             <DateTimePicker
               label="Tylko data"
               mode="date"
@@ -57,14 +53,11 @@ export function DateTimePickerExample() {
               onValidationChange={dateValidation.onValidationChange}
             />
             <p className="selected-value">
-              Wartość:{" "}
-              <code>
-                {dateOnly ? dateOnly.toLocaleDateString("pl-PL") : "brak"}
-              </code>
+              Wartość: <code>{dateOnly ? dateOnly.toISOString() : "brak"}</code>
             </p>
           </div>
 
-          <div className="dtp-example-block">
+          <div className="feature-example-block">
             <DateTimePicker
               label="Tylko czas"
               mode="time"
