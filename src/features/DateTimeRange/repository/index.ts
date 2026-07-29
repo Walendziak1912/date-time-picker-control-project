@@ -24,3 +24,8 @@ export {
   getPresetRange,
   matchPreset,
 } from './rangePresets'
+export {
+  DEFAULT_FLEX_DATES_OPTIONS,
+  serializeFlexRange,
+  isFlexibilityValue,
+} from './flexDates'

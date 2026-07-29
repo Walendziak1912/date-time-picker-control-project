@@ -181,7 +181,11 @@ export function normalizeRangeValue(
     }
   }
 
-  return { start, end }
+  return {
+    start,
+    end,
+    ...(value.flexibility !== undefined ? { flexibility: value.flexibility } : {}),
+  }
 }
 
 export function buildStartConstraints(options: {

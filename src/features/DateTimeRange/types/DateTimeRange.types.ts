@@ -11,13 +11,28 @@ import type {
   TimeSteps,
 } from '../../DateTimePicker'
 
+export type DateTimeRangeFlexibility = 0 | 1 | 2 | 3 | 7
+
 export type DateTimeRangeValue = {
   start: Date | null
   end: Date | null
+  /** Tolerancja w dniach wokół bazowych dat — używane z showFlexDates. */
+  flexibility?: DateTimeRangeFlexibility
+}
+
+export type DateTimeRangeFlexPayload = {
+  from: string
+  to: string
+  flexibility: DateTimeRangeFlexibility
+}
+
+export type DateTimeRangeFlexOption = {
+  value: DateTimeRangeFlexibility
+  label: string
 }
 
 export type DateTimeRangeChangeContext = {
-  source: 'start' | 'end' | 'preset'
+  source: 'start' | 'end' | 'preset' | 'flexDates'
   change: DateTimeChangeContext
 }
 
@@ -147,6 +162,17 @@ export type DateTimeRangeProps = SharedPickerProps & {
   presetPlaceholder?: string
   presetLabel?: ReactNode
   presetClassName?: string
+  /** Włącza combobox z elastycznymi opcjami dat (jak Booking.com). Domyślnie false. */
+  showFlexDates?: boolean
+  /** Wybrana elastyczność (kontrolowana). Domyślnie 0 = dokładny termin. */
+  flexibility?: DateTimeRangeFlexibility
+  defaultFlexibility?: DateTimeRangeFlexibility
+  onFlexibilityChange?: (flexibility: DateTimeRangeFlexibility) => void
+  /** Nadpisanie domyślnej listy opcji elastyczności */
+  flexDatesOptions?: DateTimeRangeFlexOption[]
+  flexDatesPlaceholder?: string
+  flexDatesLabel?: ReactNode
+  flexDatesClassName?: string
 }
 
 export type DateTimeRangeConstraintMode = DateTimePickerMode

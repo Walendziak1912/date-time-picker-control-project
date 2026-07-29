@@ -2,8 +2,16 @@ import { useState } from "react";
 
 import { useAppToast } from "../../../hooks/useAppToast";
 import { serializeBackendUtc } from "../../DateTimePicker";
-import { DateTimeRange, getMaxEndForStart, getPresetRange } from "../index";
-import type { DateTimeRangePresetKey, DateTimeRangeValue } from "../types";
+import {
+  DateTimeRange,
+  getMaxEndForStart,
+  getPresetRange,
+  serializeFlexRange,
+} from "../index";
+import type {
+  DateTimeRangePresetKey,
+  DateTimeRangeValue,
+} from "../types";
 import { useRangeFieldValidation } from "./useRangeFieldValidation";
 import "./DateTimeRangeExample.css";
 function formatRangeValue(
@@ -76,6 +84,14 @@ export function DateTimeRangeExample() {
   const [selectedPreset, setSelectedPreset] =
     useState<DateTimeRangePresetKey | null>("lastMonth");
 
+  const [flexRange, setFlexRange] = useState<DateTimeRangeValue>({
+    start: new Date("2026-08-02"),
+    end: new Date("2026-08-06"),
+    flexibility: 0,
+  });
+
+  const flexPayload = serializeFlexRange(flexRange, "UTC");
+
   return (
     <>
       {toastElement}
@@ -89,12 +105,35 @@ export function DateTimeRangeExample() {
             <code>maxRangeMinutes</code>, <code>maxRangeMonths</code>. Prop{" "}
             <code>precision</code> włącza liczenie od dokładnego momentu startu.
             Prop <code>showPresets</code> dodaje combobox z gotowymi okresami.
-            Walidacja formatu i kolejności dat z Toastem — wpisz błędną wartość
-            i zatwierdź pole (Enter lub blur).
+            Prop <code>showFlexDates</code> dodaje combobox z elastycznymi
+            opcjami dat (jak Booking.com). Walidacja formatu i kolejności dat z
+            Toastem — wpisz błędną wartość i zatwierdź pole (Enter lub blur).
           </p>
         </header>
 
         <div className="feature-example-stack">
+          <div className="feature-example-block">
+            <DateTimeRange
+              mode="date"
+              value={flexRange}
+              onChange={setFlexRange}
+              showFlexDates
+              startLabel="Przyjazd"
+              endLabel="Wyjazd"
+              separator={null}
+            />
+            <p className="selected-value">
+              Wartość: {formatRangeValue(flexRange, "date")}
+            </p>
+            <p className="selected-value">
+              Elastyczność: <code>{flexRange.flexibility ?? 0}</code> dni
+            </p>
+            <p className="selected-value">
+              Payload API:{" "}
+              <code>{flexPayload ? JSON.stringify(flexPayload) : "brak"}</code>
+            </p>
+          </div>
+
           <div className="feature-example-block">
             <DateTimeRange
               value={toastRange}

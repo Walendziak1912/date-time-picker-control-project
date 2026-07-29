@@ -7,6 +7,9 @@ export type {
   DateTimeRangeLimits,
   DateTimeRangePresetKey,
   DateTimeRangePresetOption,
+  DateTimeRangeFlexibility,
+  DateTimeRangeFlexOption,
+  DateTimeRangeFlexPayload,
 } from './types'
 export {
   addCalendarDays,
@@ -20,4 +23,7 @@ export {
   DEFAULT_PRESET_OPTIONS,
   getPresetRange,
   matchPreset,
+  DEFAULT_FLEX_DATES_OPTIONS,
+  serializeFlexRange,
+  isFlexibilityValue,
 } from './repository'

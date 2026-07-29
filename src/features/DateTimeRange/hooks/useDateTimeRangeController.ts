@@ -14,9 +14,10 @@ import type {
   DateTimeRangeChangeContext,
   DateTimeRangeLimits,
   DateTimeRangeProps,
+  DateTimeRangeValue,
 } from '../types'
 
-const EMPTY_RANGE = { start: null, end: null } as const
+const EMPTY_RANGE: DateTimeRangeValue = { start: null, end: null }
 
 export function useDateTimeRangeController(props: DateTimeRangeProps) {
   const {
@@ -45,6 +46,9 @@ export function useDateTimeRangeController(props: DateTimeRangeProps) {
     error: errorProp = false,
     helperText,
     onValidationChange,
+    showFlexDates = false,
+    flexibility: flexibilityProp,
+    defaultFlexibility = 0,
   } = props
 
   const startFieldName = fieldLabel(startLabel, 'Od')
@@ -85,55 +89,57 @@ export function useDateTimeRangeController(props: DateTimeRangeProps) {
 
   const hasError = errorProp || !validationResult.valid
 
+  const resolveFlexRange = useCallback(
+    (nextValue: typeof value) => {
+      const normalized = normalizeRangeValue(nextValue, rangeLimits, mode)
+      if (!showFlexDates) return normalized
+      return {
+        ...normalized,
+        flexibility: normalized.flexibility ?? flexibilityProp ?? defaultFlexibility,
+      }
+    },
+    [defaultFlexibility, flexibilityProp, mode, rangeLimits, showFlexDates],
+  )
+
   const commitValue = useCallback(
     (nextValue: typeof value, context: DateTimeRangeChangeContext) => {
-      const normalized = normalizeRangeValue(nextValue, rangeLimits, mode)
+      const resolved = resolveFlexRange(nextValue)
 
       if (!isControlled) {
-        setInternalValue(normalized)
+        setInternalValue(resolved)
       }
 
-      onChange?.(normalized, context)
+      onChange?.(resolved, context)
     },
-    [isControlled, mode, onChange, rangeLimits],
+    [isControlled, onChange, resolveFlexRange],
   )
 
   const handleStartChange = useCallback(
     (nextStart: Date | null, change: DateTimeChangeContext) => {
-      commitValue({ start: nextStart, end: value.end }, { source: 'start', change })
+      commitValue({ ...value, start: nextStart }, { source: 'start', change })
     },
-    [commitValue, value.end],
+    [commitValue, value],
   )
 
   const handleEndChange = useCallback(
     (nextEnd: Date | null, change: DateTimeChangeContext) => {
-      commitValue({ start: value.start, end: nextEnd }, { source: 'end', change })
+      commitValue({ ...value, end: nextEnd }, { source: 'end', change })
     },
-    [commitValue, value.start],
+    [commitValue, value],
   )
 
   const handleStartAccept = useCallback(
     (nextStart: Date | null, change: DateTimeChangeContext) => {
-      const normalized = normalizeRangeValue(
-        { start: nextStart, end: value.end },
-        rangeLimits,
-        mode,
-      )
-      onAccept?.(normalized, { source: 'start', change })
+      onAccept?.(resolveFlexRange({ ...value, start: nextStart }), { source: 'start', change })
     },
-    [mode, onAccept, rangeLimits, value.end],
+    [onAccept, resolveFlexRange, value],
   )
 
   const handleEndAccept = useCallback(
     (nextEnd: Date | null, change: DateTimeChangeContext) => {
-      const normalized = normalizeRangeValue(
-        { start: value.start, end: nextEnd },
-        rangeLimits,
-        mode,
-      )
-      onAccept?.(normalized, { source: 'end', change })
+      onAccept?.(resolveFlexRange({ ...value, end: nextEnd }), { source: 'end', change })
     },
-    [mode, onAccept, rangeLimits, value.start],
+    [onAccept, resolveFlexRange, value],
   )
 
   const handleStartValidationChange = useCallback((result: DateTimeValidationResult) => {

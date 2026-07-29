@@ -1,7 +1,8 @@
 import { DateTimePicker } from '../../DateTimePicker'
 import { resolveRangeFieldErrors } from '../repository'
-import { useDateTimeRangeController, useDateTimeRangePresets } from '../hooks'
-import type { DateTimeRangePresetKey, DateTimeRangeProps } from '../types'
+import { useDateTimeRangeController, useDateTimeRangeFlexDates, useDateTimeRangePresets } from '../hooks'
+import type { DateTimeRangeFlexibility, DateTimeRangePresetKey, DateTimeRangeProps } from '../types'
+import { DateTimeRangeFlexDates } from './DateTimeRangeFlexDates'
 import { DateTimeRangePresets } from './DateTimeRangePresets'
 import './DateTimeRange.css'
 
@@ -41,6 +42,14 @@ export function DateTimeRange(props: DateTimeRangeProps) {
     presetPlaceholder,
     presetLabel,
     presetClassName,
+    showFlexDates = false,
+    flexibility,
+    defaultFlexibility,
+    onFlexibilityChange,
+    flexDatesOptions,
+    flexDatesPlaceholder,
+    flexDatesLabel,
+    flexDatesClassName,
     timezone = 'UTC',
     ...pickerProps
   } = props
@@ -70,6 +79,9 @@ export function DateTimeRange(props: DateTimeRangeProps) {
     minDateTime,
     maxDateTime,
     onValidationChange,
+    showFlexDates,
+    flexibility,
+    defaultFlexibility,
     timezone,
     ...pickerProps,
   })
@@ -100,6 +112,14 @@ export function DateTimeRange(props: DateTimeRangeProps) {
     value: rangeValue,
   })
 
+  const flexDates = useDateTimeRangeFlexDates({
+    enabled: showFlexDates,
+    flexibility: flexibility ?? rangeValue.flexibility,
+    defaultFlexibility,
+    onFlexibilityChange,
+    flexDatesOptions,
+  })
+
   const rangeHelperText =
     helperText ??
     (showTextUnderFieldWhenError && hasError && !validationResult.valid
@@ -126,9 +146,23 @@ export function DateTimeRange(props: DateTimeRangeProps) {
     onAccept?.(nextRange, { source: 'preset', change: { source: 'unknown' } })
   }
 
+  const handleFlexDatesSelect = (nextFlexibility: DateTimeRangeFlexibility) => {
+    flexDates.setFlexibility(nextFlexibility)
+    const nextRange = { ...rangeValue, flexibility: nextFlexibility }
+    applyRangeValue(nextRange, { source: 'flexDates', change: { source: 'unknown' } })
+    onAccept?.(nextRange, { source: 'flexDates', change: { source: 'unknown' } })
+  }
+
+  const layoutModifiers = [
+    showPresets ? 'dtr--with-presets' : '',
+    showFlexDates ? 'dtr--with-flex-dates' : '',
+  ]
+    .filter(Boolean)
+    .join(' ')
+
   return (
     <div
-      className={['dtr', showPresets ? 'dtr--with-presets' : '', className].filter(Boolean).join(' ')}
+      className={['dtr', layoutModifiers, className].filter(Boolean).join(' ')}
       data-disabled={disabled || undefined}
       data-error={hasError || undefined}
       data-mode={sharedPickerConfig.mode}
@@ -181,6 +215,18 @@ export function DateTimeRange(props: DateTimeRangeProps) {
             disabled={disabled || readOnly}
             className={presetClassName}
             onChange={handlePresetSelect}
+          />
+        )}
+
+        {showFlexDates && (
+          <DateTimeRangeFlexDates
+            label={flexDatesLabel ?? 'Elastyczne opcje dat'}
+            value={flexDates.flexibility}
+            options={flexDates.options}
+            placeholder={flexDatesPlaceholder}
+            disabled={disabled || readOnly}
+            className={flexDatesClassName}
+            onChange={handleFlexDatesSelect}
           />
         )}
       </div>
