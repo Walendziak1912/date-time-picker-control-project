@@ -43,22 +43,22 @@ See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rule
 | `mode="datetime"` + `showSeconds`                      | `dd.MM.yyyy HH:mm:ss`     |
 | `mode="datetime"` + `showSeconds` + `showMilliseconds` | `dd.MM.yyyy HH:mm:ss:SSS` |
 
-'<DateTimePicker
+`<DateTimePicker
   value={value}
   onChange={setValue}
   format="yyyy-MM-dd HH:mm"
-/>'
+/>`
 
-'<DateTimeRange
+`<DateTimeRange
   value={range}
   onChange={setRange}
   format="yyyy-MM-dd'T'HH:mm:ss.SSS"
-/>'
+/>`
 
 Różne formaty na range
-'<DateTimeRange
+`<DateTimeRange
 value={range}
 onChange={setRange}
 startProps={{ format: 'dd.MM.yyyy HH:mm' }}
 endProps={{ format: 'dd.MM.yyyy HH:mm:ss' }}
-/>'
+/>`
