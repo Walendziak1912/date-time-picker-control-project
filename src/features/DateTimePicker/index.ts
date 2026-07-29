@@ -6,6 +6,7 @@ export type {
   DateTimeValidationResult,
   DateTimeChangeContext,
   DateTimePickerLocaleText,
+  SupportedLocale,
   TimePickerVariant,
   TimeSteps,
 } from './types'

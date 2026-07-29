@@ -1,4 +1,9 @@
 export type {
+  DateTimeRangeLocaleText,
+  ResolvedRangeLocaleText,
+  SupportedLocale,
+} from './rangeLocaleText.types'
+export type {
   DateTimeRangeValue,
   DateTimeRangeChangeContext,
   DateTimeRangeValidationReason,

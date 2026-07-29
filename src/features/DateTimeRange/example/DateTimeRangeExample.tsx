@@ -1,5 +1,6 @@
 import { useState } from "react";
 
+import type { SupportedLocale } from "../../DateTimePicker";
 import { useAppToast } from "../../../hooks/useAppToast";
 import { serializeBackendUtc } from "../../DateTimePicker";
 import {
@@ -14,21 +15,91 @@ import type {
 } from "../types";
 import { useRangeFieldValidation } from "./useRangeFieldValidation";
 import "./DateTimeRangeExample.css";
+
+const EXAMPLE_TEXT = {
+  "pl-PL": {
+    subtitle:
+      "Zakres dat oparty na dwóch kontrolkach DateTimePicker. Limity: maxRangeDays, maxRangeHours, maxRangeMinutes, maxRangeMonths. Prop precision włącza liczenie od dokładnego momentu startu. Prop showPresets dodaje combobox z gotowymi okresami. Prop showFlexDates dodaje combobox z elastycznymi opcjami dat (jak Booking.com). Walidacja formatu i kolejności dat z Toastem — wpisz błędną wartość i zatwierdź pole (Enter lub blur).",
+    none: "brak",
+    noneSetStart: "brak (ustaw datę początkową)",
+    customPreset: "niestandardowy",
+    arrival: "Przyjazd",
+    departure: "Wyjazd",
+    fromToast: "Od (Toast)",
+    toToast: "Do (Toast)",
+    dateFrom: "Data od",
+    dateTo: "Data do",
+    fromMax3: "Od (max 3 dni)",
+    toMax3: "Do (max 3 dni)",
+    fromPrecision: "Od (precision)",
+    toPrecision: "Do (precision)",
+    fromMax6h: "Od (max 6 h)",
+    toMax6h: "Do (max 6 h)",
+    value: "Wartość:",
+    flexibility: "Elastyczność:",
+    flexibilityDays: "dni",
+    payload: "Payload API:",
+    selectedPreset: "Wybrany preset:",
+    startUtc: "Start UTC:",
+    endUtc: "Koniec UTC:",
+    maxEndUtc: "Max koniec UTC (2 doby od startu):",
+    limit3Days: "— limit 3 dni kalendarzowe",
+    limit6Hours: "— limit 6 godzin",
+    precisionHint: "Np. start 15.07.2026 02:00:00.000 → max 17.07.2026 02:00:00.000",
+  },
+  "en-US": {
+    subtitle:
+      "Date range built from two DateTimePicker controls. Limits: maxRangeDays, maxRangeHours, maxRangeMinutes, maxRangeMonths. The precision prop counts from the exact start moment. showPresets adds a preset combobox. showFlexDates adds flexible date options (like Booking.com). Format and order validation via Toast — enter an invalid value and confirm the field (Enter or blur).",
+    none: "none",
+    noneSetStart: "none (set start date)",
+    customPreset: "custom",
+    arrival: "Check-in",
+    departure: "Check-out",
+    fromToast: "From (Toast)",
+    toToast: "To (Toast)",
+    dateFrom: "From date",
+    dateTo: "To date",
+    fromMax3: "From (max 3 days)",
+    toMax3: "To (max 3 days)",
+    fromPrecision: "From (precision)",
+    toPrecision: "To (precision)",
+    fromMax6h: "From (max 6 h)",
+    toMax6h: "To (max 6 h)",
+    value: "Value:",
+    flexibility: "Flexibility:",
+    flexibilityDays: "days",
+    payload: "API payload:",
+    selectedPreset: "Selected preset:",
+    startUtc: "Start UTC:",
+    endUtc: "End UTC:",
+    maxEndUtc: "Max end UTC (2 days from start):",
+    limit3Days: "— 3 calendar days limit",
+    limit6Hours: "— 6 hours limit",
+    precisionHint: "E.g. start 2026-07-15 02:00:00.000 → max 2026-07-17 02:00:00.000",
+  },
+} as const;
+
+type DateTimeRangeExampleProps = {
+  locale?: SupportedLocale;
+};
+
 function formatRangeValue(
   value: DateTimeRangeValue,
   mode: "date" | "datetime",
+  locale: SupportedLocale,
+  noneLabel: string,
 ) {
   const formatDate = (date: Date | null) => {
-    if (!date) return "brak";
-    if (mode === "date") return date.toLocaleDateString("pl-PL");
+    if (!date) return noneLabel;
+    if (mode === "date") return date.toLocaleDateString(locale);
     return date.toISOString();
   };
 
   return `${formatDate(value.start)} → ${formatDate(value.end)}`;
 }
 
-function formatMaxEnd(start: Date | null) {
-  if (!start) return "brak (ustaw datę początkową)";
+function formatMaxEnd(start: Date | null, noneLabel: string, noneSetStartLabel: string) {
+  if (!start) return noneSetStartLabel;
 
   const maxEnd = getMaxEndForStart(
     start,
@@ -36,12 +107,13 @@ function formatMaxEnd(start: Date | null) {
     "datetime",
   );
 
-  return maxEnd ? serializeBackendUtc(maxEnd) : "brak";
+  return maxEnd ? serializeBackendUtc(maxEnd) : noneLabel;
 }
 
-export function DateTimeRangeExample() {
+export function DateTimeRangeExample({ locale = "pl-PL" }: DateTimeRangeExampleProps) {
+  const text = EXAMPLE_TEXT[locale];
   const { toastElement, showError } = useAppToast();
-  const toastValidation = useRangeFieldValidation(showError);
+  const toastValidation = useRangeFieldValidation(showError, locale);
 
   const [toastRange, setToastRange] = useState<DateTimeRangeValue>({
     start: new Date(),
@@ -91,6 +163,8 @@ export function DateTimeRangeExample() {
   });
 
   const flexPayload = serializeFlexRange(flexRange, "UTC");
+  const formatValue = (value: DateTimeRangeValue, mode: "date" | "datetime" = "datetime") =>
+    formatRangeValue(value, mode, locale, text.none);
 
   return (
     <>
@@ -99,59 +173,53 @@ export function DateTimeRangeExample() {
       <section className="feature-example dtr-example">
         <header className="feature-example-intro">
           <h1>DateTimeRange</h1>
-          <p className="feature-example-subtitle">
-            Zakres dat oparty na dwóch kontrolkach DateTimePicker. Limity:{" "}
-            <code>maxRangeDays</code>, <code>maxRangeHours</code>,{" "}
-            <code>maxRangeMinutes</code>, <code>maxRangeMonths</code>. Prop{" "}
-            <code>precision</code> włącza liczenie od dokładnego momentu startu.
-            Prop <code>showPresets</code> dodaje combobox z gotowymi okresami.
-            Prop <code>showFlexDates</code> dodaje combobox z elastycznymi
-            opcjami dat (jak Booking.com). Walidacja formatu i kolejności dat z
-            Toastem — wpisz błędną wartość i zatwierdź pole (Enter lub blur).
-          </p>
+          <p className="feature-example-subtitle">{text.subtitle}</p>
         </header>
 
         <div className="feature-example-stack">
           <div className="feature-example-block">
             <DateTimeRange
+              locale={locale}
               mode="date"
               value={flexRange}
               onChange={setFlexRange}
               showFlexDates
-              startLabel="Przyjazd"
-              endLabel="Wyjazd"
+              startLabel={text.arrival}
+              endLabel={text.departure}
               separator={null}
             />
             <p className="selected-value">
-              Wartość: {formatRangeValue(flexRange, "date")}
+              {text.value} {formatValue(flexRange, "date")}
             </p>
             <p className="selected-value">
-              Elastyczność: <code>{flexRange.flexibility ?? 0}</code> dni
+              {text.flexibility} <code>{flexRange.flexibility ?? 0}</code> {text.flexibilityDays}
             </p>
             <p className="selected-value">
-              Payload API:{" "}
-              <code>{flexPayload ? JSON.stringify(flexPayload) : "brak"}</code>
+              {text.payload}{" "}
+              <code>{flexPayload ? JSON.stringify(flexPayload) : text.none}</code>
             </p>
           </div>
 
           <div className="feature-example-block">
             <DateTimeRange
+              locale={locale}
               value={toastRange}
               onChange={setToastRange}
-              startLabel="Od (Toast)"
-              endLabel="Do (Toast)"
+              startLabel={text.fromToast}
+              endLabel={text.toToast}
               error={toastValidation.error}
               onValidationChange={toastValidation.onValidationChange}
               showBorderFieldWhenError
               showPresets
             />
             <p className="selected-value">
-              Wartość: <code>{formatRangeValue(toastRange, "datetime")}</code>
+              {text.value} <code>{formatValue(toastRange)}</code>
             </p>
           </div>
 
           <div className="feature-example-block">
             <DateTimeRange
+              locale={locale}
               value={presetsRange}
               onChange={setPresetsRange}
               preset={selectedPreset}
@@ -160,123 +228,115 @@ export function DateTimeRangeExample() {
               separator={null}
             />
             <p className="selected-value">
-              Wartość: <code>{formatRangeValue(presetsRange, "datetime")}</code>
+              {text.value} <code>{formatValue(presetsRange)}</code>
             </p>
             <p className="selected-value">
-              Wybrany preset: <code>{selectedPreset ?? "niestandardowy"}</code>
+              {text.selectedPreset} <code>{selectedPreset ?? text.customPreset}</code>
             </p>
           </div>
 
           <div className="feature-example-block">
             <DateTimeRange
+              locale={locale}
               mode="date"
               value={dateRange}
               onChange={setDateRange}
-              startLabel="Data od"
-              endLabel="Data do"
+              startLabel={text.dateFrom}
+              endLabel={text.dateTo}
             />
             <p className="selected-value">
-              Wartość: {formatRangeValue(dateRange, "date")}
+              {text.value} {formatValue(dateRange, "date")}
+            </p>
+          </div>
+
+          <div className="feature-example-block">
+            <DateTimeRange locale={locale} value={datetimeRange} onChange={setDatetimeRange} />
+            <p className="selected-value">
+              {text.value} <code>{formatValue(datetimeRange)}</code>
             </p>
           </div>
 
           <div className="feature-example-block">
             <DateTimeRange
-              value={datetimeRange}
-              onChange={setDatetimeRange}
-              startLabel="Od"
-              endLabel="Do"
-            />
-            <p className="selected-value">
-              Wartość:{" "}
-              <code>{formatRangeValue(datetimeRange, "datetime")}</code>
-            </p>
-          </div>
-
-          <div className="feature-example-block">
-            <DateTimeRange
+              locale={locale}
               value={preciseRange}
               onChange={setPreciseRange}
-              startLabel="Od"
-              endLabel="Do"
               showPresets
             />
             <p className="selected-value">
-              Start UTC:{" "}
+              {text.startUtc}{" "}
               <code>
                 {preciseRange.start
                   ? serializeBackendUtc(preciseRange.start)
-                  : "brak"}
+                  : text.none}
               </code>
             </p>
             <p className="selected-value">
-              Koniec UTC:{" "}
+              {text.endUtc}{" "}
               <code>
                 {preciseRange.end
                   ? serializeBackendUtc(preciseRange.end)
-                  : "brak"}
+                  : text.none}
               </code>
             </p>
           </div>
 
           <div className="feature-example-block">
             <DateTimeRange
+              locale={locale}
               mode="date"
               value={limitedRange}
               onChange={setLimitedRange}
-              startLabel="Od (max 3 dni)"
-              endLabel="Do (max 3 dni)"
+              startLabel={text.fromMax3}
+              endLabel={text.toMax3}
               maxRangeDays={3}
             />
             <p className="selected-value">
-              Wartość: {formatRangeValue(limitedRange, "date")} — limit 3 dni
-              kalendarzowe
+              {text.value} {formatValue(limitedRange, "date")} {text.limit3Days}
             </p>
           </div>
 
           <div className="feature-example-block">
             <DateTimeRange
+              locale={locale}
               value={precisionRange}
               onChange={setPrecisionRange}
-              startLabel="Od (precision)"
-              endLabel="Do (precision)"
+              startLabel={text.fromPrecision}
+              endLabel={text.toPrecision}
               showSeconds
               showMilliseconds
               maxRangeDays={2}
               precision
             />
             <p className="selected-value">
-              Wartość:{" "}
-              <code>{formatRangeValue(precisionRange, "datetime")}</code>
+              {text.value} <code>{formatValue(precisionRange)}</code>
             </p>
             <p className="selected-value">
-              Start UTC:{" "}
+              {text.startUtc}{" "}
               <code>
                 {precisionRange.start
                   ? serializeBackendUtc(precisionRange.start)
-                  : "brak"}
+                  : text.none}
               </code>
             </p>
             <p className="selected-value">
-              Max koniec UTC (2 doby od startu):{" "}
-              <code>{formatMaxEnd(precisionRange.start)}</code>
+              {text.maxEndUtc}{" "}
+              <code>{formatMaxEnd(precisionRange.start, text.none, text.noneSetStart)}</code>
             </p>
-            <p className="selected-value">
-              Np. start 15.07.2026 02:00:00.000 → max 17.07.2026 02:00:00.000
-            </p>
+            <p className="selected-value">{text.precisionHint}</p>
           </div>
 
           <div className="feature-example-block">
             <DateTimeRange
+              locale={locale}
               value={hoursRange}
               onChange={setHoursRange}
-              startLabel="Od (max 6 h)"
-              endLabel="Do (max 6 h)"
+              startLabel={text.fromMax6h}
+              endLabel={text.toMax6h}
               maxRangeHours={6}
             />
             <p className="selected-value">
-              Wartość: <code>{formatRangeValue(hoursRange, "datetime")}</code> —
-              limit 6 godzin
+              {text.value} <code>{formatValue(hoursRange)}</code> {text.limit6Hours}
             </p>
           </div>
         </div>

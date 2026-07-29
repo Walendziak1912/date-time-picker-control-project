@@ -1,5 +1,7 @@
 import type { DateTimeValidationResult } from '../../DateTimePicker'
+import { formatRangeMessage } from './rangeLocaleText'
 import type { DateTimeRangeValidationResult } from '../types'
+import type { ResolvedRangeLocaleText } from '../types/rangeLocaleText.types'
 
 export const VALID_FIELD: DateTimeValidationResult = { valid: true }
 
@@ -12,19 +14,24 @@ export function buildFormatValidationMessage(
   end: DateTimeValidationResult,
   startFieldName: string,
   endFieldName: string,
+  messages: Pick<
+    ResolvedRangeLocaleText,
+    'invalidFormatBoth' | 'invalidFormatStart' | 'invalidFormatEnd'
+  >,
 ): string {
   const startInvalid = !start.valid
   const endInvalid = !end.valid
+  const fieldVars = { startField: startFieldName, endField: endFieldName }
 
   if (startInvalid && endInvalid) {
-    return `Nieprawidłowy format daty w polach ${startFieldName} i ${endFieldName}`
+    return formatRangeMessage(messages.invalidFormatBoth, fieldVars)
   }
 
   if (startInvalid) {
-    return start.message ?? `Nieprawidłowy format daty w polu ${startFieldName}`
+    return start.message ?? formatRangeMessage(messages.invalidFormatStart, fieldVars)
   }
 
-  return end.message ?? `Nieprawidłowy format daty w polu ${endFieldName}`
+  return end.message ?? formatRangeMessage(messages.invalidFormatEnd, fieldVars)
 }
 
 export function buildRangeValidationResult(options: {
@@ -33,15 +40,20 @@ export function buildRangeValidationResult(options: {
   rangeOrderValid: boolean
   startFieldName: string
   endFieldName: string
+  messages: Pick<
+    ResolvedRangeLocaleText,
+    'invalidFormatBoth' | 'invalidFormatStart' | 'invalidFormatEnd' | 'invalidRange'
+  >
 }): DateTimeRangeValidationResult {
-  const { start, end, rangeOrderValid, startFieldName, endFieldName } = options
+  const { start, end, rangeOrderValid, startFieldName, endFieldName, messages } = options
   const fields = { start, end }
+  const fieldVars = { startField: startFieldName, endField: endFieldName }
 
   if (!start.valid || !end.valid) {
     return {
       valid: false,
       reason: 'invalidFormat',
-      message: buildFormatValidationMessage(start, end, startFieldName, endFieldName),
+      message: buildFormatValidationMessage(start, end, startFieldName, endFieldName, messages),
       fields,
     }
   }
@@ -50,7 +62,7 @@ export function buildRangeValidationResult(options: {
     return {
       valid: false,
       reason: 'invalidRange',
-      message: `Data w polu ${endFieldName} nie może być wcześniejsza niż w polu ${startFieldName}.`,
+      message: formatRangeMessage(messages.invalidRange, fieldVars),
       fields,
     }
   }

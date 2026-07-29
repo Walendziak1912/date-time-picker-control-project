@@ -1,8 +1,9 @@
+import { normalizeLocale, type SupportedLocale } from '../types/locale.types'
 import { getMonthLabels, getWeekdayLabels } from './dateUtils'
 import type { DateTimePickerLocaleText, ResolvedLocaleText } from '../types/localeText.types'
 
-function defaultsForLocale(locale: string): Omit<ResolvedLocaleText, 'weekdayLabels' | 'monthLabels'> {
-  const pl = locale.toLowerCase().startsWith('pl')
+function defaultsForLocale(locale: SupportedLocale): Omit<ResolvedLocaleText, 'weekdayLabels' | 'monthLabels'> {
+  const pl = locale === 'pl-PL'
   return {
     cancel: pl ? 'Anuluj' : 'Cancel',
     ok: pl ? 'Zatwierdź' : 'OK',
@@ -25,13 +26,14 @@ function defaultsForLocale(locale: string): Omit<ResolvedLocaleText, 'weekdayLab
 }
 
 export function resolveLocaleText(
-  locale: string,
+  locale?: string,
   overrides?: DateTimePickerLocaleText,
 ): ResolvedLocaleText {
-  const base = defaultsForLocale(locale)
+  const resolvedLocale = normalizeLocale(locale)
+  const base = defaultsForLocale(resolvedLocale)
   return {
-    weekdayLabels: overrides?.weekdayLabels ?? getWeekdayLabels(locale),
-    monthLabels: overrides?.monthLabels ?? getMonthLabels(locale),
+    weekdayLabels: overrides?.weekdayLabels ?? getWeekdayLabels(resolvedLocale),
+    monthLabels: overrides?.monthLabels ?? getMonthLabels(resolvedLocale),
     cancel: overrides?.cancel ?? base.cancel,
     ok: overrides?.ok ?? base.ok,
     today: overrides?.today ?? base.today,

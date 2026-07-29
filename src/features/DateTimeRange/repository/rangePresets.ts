@@ -10,16 +10,39 @@ import {
   startOfDayTz,
   type DateTimePickerTimezone,
 } from '../../DateTimePicker'
+import { normalizeLocale, type SupportedLocale } from '../../DateTimePicker/types/locale.types'
 import type { DateTimeRangePresetKey, DateTimeRangePresetOption, DateTimeRangeValue } from '../types'
 
-export const DEFAULT_PRESET_OPTIONS: DateTimeRangePresetOption[] = [
-  { key: 'today', label: 'Dzisiaj' },
-  { key: 'yesterday', label: 'Wczoraj' },
-  { key: 'thisWeek', label: 'Ten tydzień' },
-  { key: 'lastWeek', label: 'Zeszły tydzień' },
-  { key: 'thisMonth', label: 'Ten miesiąc' },
-  { key: 'lastMonth', label: 'Zeszły miesiąc' },
-]
+const PRESET_LABELS: Record<SupportedLocale, Record<DateTimeRangePresetKey, string>> = {
+  'pl-PL': {
+    today: 'Dzisiaj',
+    yesterday: 'Wczoraj',
+    thisWeek: 'Ten tydzień',
+    lastWeek: 'Zeszły tydzień',
+    thisMonth: 'Ten miesiąc',
+    lastMonth: 'Zeszły miesiąc',
+  },
+  'en-US': {
+    today: 'Today',
+    yesterday: 'Yesterday',
+    thisWeek: 'This week',
+    lastWeek: 'Last week',
+    thisMonth: 'This month',
+    lastMonth: 'Last month',
+  },
+}
+
+export function buildDefaultPresetOptions(locale?: string): DateTimeRangePresetOption[] {
+  const resolvedLocale = normalizeLocale(locale)
+  const labels = PRESET_LABELS[resolvedLocale]
+
+  return (Object.keys(labels) as DateTimeRangePresetKey[]).map((key) => ({
+    key,
+    label: labels[key],
+  }))
+}
+
+export const DEFAULT_PRESET_OPTIONS = buildDefaultPresetOptions('pl-PL')
 
 function endOfDayTz(date: Date, timezone: DateTimePickerTimezone): Date {
   return createInstant(

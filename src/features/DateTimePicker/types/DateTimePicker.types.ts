@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 
+import type { SupportedLocale } from "./locale.types";
 import type { DateTimePickerLocaleText } from "./localeText.types";
 
 export type DateTimePickerTimezone = "UTC" | "system";
@@ -104,7 +105,7 @@ export type DateTimePickerProps = {
   //analog (default) or digital clock
   timeVariant?: TimePickerVariant;
   className?: string;
-  locale?: string;
+  locale?: SupportedLocale;
   //nadpisanie domyślnych etykiet
   localeText?: DateTimePickerLocaleText;
   //błąd z formularza (aria-invalid + helperText) Czerwona ramka tylko gdy "showBorderFieldWhenError"

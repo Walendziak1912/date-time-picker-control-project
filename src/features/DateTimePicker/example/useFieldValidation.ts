@@ -1,17 +1,26 @@
 import { useCallback, useState } from 'react'
+import type { SupportedLocale } from '../types'
 import type { DateTimeValidationResult } from '../types'
 
-export function useFieldValidation(showError: (message: string) => void) {
+const FALLBACK_MESSAGE = {
+  'pl-PL': 'Nieprawidłowa wartość daty',
+  'en-US': 'Invalid date value',
+} as const
+
+export function useFieldValidation(
+  showError: (message: string) => void,
+  locale: SupportedLocale = 'pl-PL',
+) {
   const [error, setError] = useState(false)
 
   const onValidationChange = useCallback(
     (result: DateTimeValidationResult) => {
       setError(!result.valid)
       if (!result.valid) {
-        showError(result.message ?? 'Nieprawidłowa wartość')
+        showError(result.message ?? FALLBACK_MESSAGE[locale])
       }
     },
-    [showError],
+    [locale, showError],
   )
 
   return { error, onValidationChange }

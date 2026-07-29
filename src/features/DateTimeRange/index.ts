@@ -10,6 +10,8 @@ export type {
   DateTimeRangeFlexibility,
   DateTimeRangeFlexOption,
   DateTimeRangeFlexPayload,
+  DateTimeRangeLocaleText,
+  SupportedLocale,
 } from './types'
 export {
   addCalendarDays,
@@ -21,9 +23,12 @@ export {
   buildStartConstraints,
   buildEndConstraints,
   DEFAULT_PRESET_OPTIONS,
+  buildDefaultPresetOptions,
   getPresetRange,
   matchPreset,
   DEFAULT_FLEX_DATES_OPTIONS,
+  buildDefaultFlexDatesOptions,
   serializeFlexRange,
   isFlexibilityValue,
+  resolveRangeLocaleText,
 } from './repository'

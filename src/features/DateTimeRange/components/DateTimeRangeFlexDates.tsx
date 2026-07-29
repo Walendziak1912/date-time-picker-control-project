@@ -17,7 +17,7 @@ export function DateTimeRangeFlexDates({
   label,
   value,
   options,
-  placeholder = 'Wybierz elastyczność',
+  placeholder,
   disabled = false,
   className,
   onChange,

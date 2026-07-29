@@ -17,7 +17,7 @@ export function DateTimeRangePresets({
   label,
   value,
   options,
-  placeholder = 'Wybierz okres',
+  placeholder,
   disabled = false,
   className,
   onChange,

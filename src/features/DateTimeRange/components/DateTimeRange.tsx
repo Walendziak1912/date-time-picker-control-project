@@ -8,8 +8,8 @@ import './DateTimeRange.css'
 
 export function DateTimeRange(props: DateTimeRangeProps) {
   const {
-    startLabel = 'Od',
-    endLabel = 'Do',
+    startLabel: startLabelProp,
+    endLabel: endLabelProp,
     separator = '–',
     className,
     disabled = false,
@@ -51,6 +51,7 @@ export function DateTimeRange(props: DateTimeRangeProps) {
     flexDatesLabel,
     flexDatesClassName,
     timezone = 'UTC',
+    rangeLocaleText,
     ...pickerProps
   } = props
 
@@ -70,8 +71,9 @@ export function DateTimeRange(props: DateTimeRangeProps) {
     maxRangeMinutes,
     maxRangeMonths,
     precision,
-    startLabel,
-    endLabel,
+    startLabel: startLabelProp,
+    endLabel: endLabelProp,
+    rangeLocaleText,
     startProps,
     endProps,
     minDate,
@@ -99,6 +101,9 @@ export function DateTimeRange(props: DateTimeRangeProps) {
     handleEndAccept,
     handleStartValidationChange,
     handleEndValidationChange,
+    startLabel,
+    endLabel,
+    rangeText,
     sharedPickerConfig,
   } = controller
 
@@ -107,7 +112,7 @@ export function DateTimeRange(props: DateTimeRangeProps) {
     preset,
     defaultPreset,
     onPresetChange,
-    presetOptions,
+    presetOptions: presetOptions ?? rangeText.presetOptions,
     timezone: sharedPickerConfig.timezone ?? timezone,
     value: rangeValue,
   })
@@ -117,7 +122,7 @@ export function DateTimeRange(props: DateTimeRangeProps) {
     flexibility: flexibility ?? rangeValue.flexibility,
     defaultFlexibility,
     onFlexibilityChange,
-    flexDatesOptions,
+    flexDatesOptions: flexDatesOptions ?? rangeText.flexDatesOptions,
   })
 
   const rangeHelperText =
@@ -211,7 +216,7 @@ export function DateTimeRange(props: DateTimeRangeProps) {
             label={presetLabel}
             value={presets.preset}
             options={presets.options}
-            placeholder={presetPlaceholder}
+            placeholder={presetPlaceholder ?? rangeText.presetPlaceholder}
             disabled={disabled || readOnly}
             className={presetClassName}
             onChange={handlePresetSelect}
@@ -220,10 +225,10 @@ export function DateTimeRange(props: DateTimeRangeProps) {
 
         {showFlexDates && (
           <DateTimeRangeFlexDates
-            label={flexDatesLabel ?? 'Elastyczne opcje dat'}
+            label={flexDatesLabel ?? rangeText.flexDatesLabel}
             value={flexDates.flexibility}
             options={flexDates.options}
-            placeholder={flexDatesPlaceholder}
+            placeholder={flexDatesPlaceholder ?? rangeText.flexDatesPlaceholder}
             disabled={disabled || readOnly}
             className={flexDatesClassName}
             onChange={handleFlexDatesSelect}

@@ -8,6 +8,7 @@ import {
   fieldLabel,
   isRangeOrderValid,
   normalizeRangeValue,
+  resolveRangeLocaleText,
   VALID_FIELD,
 } from '../repository'
 import type {
@@ -30,6 +31,7 @@ export function useDateTimeRangeController(props: DateTimeRangeProps) {
     timeVariant = 'analog',
     locale = 'pl-PL',
     localeText,
+    rangeLocaleText,
     minDate,
     maxDate,
     minDateTime,
@@ -39,8 +41,8 @@ export function useDateTimeRangeController(props: DateTimeRangeProps) {
     maxRangeMinutes,
     maxRangeMonths,
     precision = false,
-    startLabel = 'Od',
-    endLabel = 'Do',
+    startLabel: startLabelProp,
+    endLabel: endLabelProp,
     startProps,
     endProps,
     error: errorProp = false,
@@ -51,8 +53,15 @@ export function useDateTimeRangeController(props: DateTimeRangeProps) {
     defaultFlexibility = 0,
   } = props
 
-  const startFieldName = fieldLabel(startLabel, 'Od')
-  const endFieldName = fieldLabel(endLabel, 'Do')
+  const rangeText = useMemo(
+    () => resolveRangeLocaleText(locale, rangeLocaleText),
+    [locale, rangeLocaleText],
+  )
+
+  const startLabel = startLabelProp ?? rangeText.startLabel
+  const endLabel = endLabelProp ?? rangeText.endLabel
+  const startFieldName = fieldLabel(startLabel, rangeText.startLabel)
+  const endFieldName = fieldLabel(endLabel, rangeText.endLabel)
 
   const rangeLimits = useMemo<DateTimeRangeLimits>(
     () => ({
@@ -83,8 +92,9 @@ export function useDateTimeRangeController(props: DateTimeRangeProps) {
         rangeOrderValid,
         startFieldName,
         endFieldName,
+        messages: rangeText,
       }),
-    [endFieldValidation, endFieldName, rangeOrderValid, startFieldName, startFieldValidation],
+    [endFieldValidation, endFieldName, rangeOrderValid, rangeText, startFieldName, startFieldValidation],
   )
 
   const hasError = errorProp || !validationResult.valid
@@ -196,6 +206,9 @@ export function useDateTimeRangeController(props: DateTimeRangeProps) {
     handleEndAccept,
     handleStartValidationChange,
     handleEndValidationChange,
+    startLabel,
+    endLabel,
+    rangeText,
     sharedPickerConfig: {
       mode,
       timezone,
