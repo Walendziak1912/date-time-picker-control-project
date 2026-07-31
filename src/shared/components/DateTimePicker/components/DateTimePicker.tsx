@@ -1,16 +1,16 @@
-import { Button } from 'primereact/button'
-import { useRef } from 'react'
-import { AnalogClock } from './AnalogClock'
-import { Calendar } from './Calendar'
-import { CalendarIcon } from './CalendarIcon'
-import { DigitalClock } from './DigitalClock'
+import { Button } from "primereact/button";
+import { useRef } from "react";
+import { AnalogClock } from "./AnalogClock";
+import { Calendar } from "./Calendar";
+import { CalendarIcon } from "./CalendarIcon";
+import { DigitalClock } from "./DigitalClock";
 import {
   useDateTimePickerController,
   usePopoverDismiss,
   usePopoverPlacement,
-} from '../hooks'
-import type { DateTimePickerProps, DateTimePickerView } from '../types'
-import './DateTimePicker.css'
+} from "../hooks";
+import type { DateTimePickerProps, DateTimePickerView } from "../types";
+import "./DateTimePicker.css";
 
 export function DateTimePicker(props: DateTimePickerProps) {
   const {
@@ -19,18 +19,18 @@ export function DateTimePicker(props: DateTimePickerProps) {
     className,
     showDaysOutsideCurrentMonth = false,
     disableHighlightToday = false,
-    yearsOrder = 'asc',
+    yearsOrder = "asc",
     yearsPerRow = 4,
     monthsPerRow = 3,
-    timeVariant = 'analog',
+    timeVariant = "analog",
     showTextUnderFieldWhenError = false,
     showBorderFieldWhenError = false,
     closeOnSelect = false,
     onViewChange,
     onYearChange,
-  } = props
+  } = props;
 
-  const controller = useDateTimePickerController(props)
+  const controller = useDateTimePickerController(props);
   const {
     rootRef,
     inputRef,
@@ -64,7 +64,8 @@ export function DateTimePicker(props: DateTimePickerProps) {
     dateConstraints,
     timeConstraints,
     isTodayDisabled,
-    handleClose,
+    handleDismiss,
+    handleCancel,
     handleOpen,
     handleSelectDay,
     handleToday,
@@ -77,23 +78,25 @@ export function DateTimePicker(props: DateTimePickerProps) {
     onFieldKeyDown,
     onFieldFocus,
     onPopoverMouseDown,
-  } = controller
+  } = controller;
 
-  const popoverRef = useRef<HTMLDivElement>(null)
+  const popoverRef = useRef<HTMLDivElement>(null);
 
-  usePopoverDismiss(open, rootRef, handleClose)
-  const popoverPlacement = usePopoverPlacement(open, rootRef, popoverRef)
+  usePopoverDismiss(open, rootRef, handleDismiss);
+  const popoverPlacement = usePopoverPlacement(open, rootRef, popoverRef);
 
   return (
     <div
       ref={rootRef}
-      className={['dtp', className].filter(Boolean).join(' ')}
+      className={["dtp", className].filter(Boolean).join(" ")}
       data-disabled={disabled || undefined}
       data-open={open || undefined}
       data-error={(showBorderFieldWhenError && hasError) || undefined}
       data-mode={mode}
-      data-seconds={resolvedShowSeconds && mode !== 'date' ? true : undefined}
-      data-milliseconds={resolvedShowMilliseconds && mode !== 'date' ? true : undefined}
+      data-seconds={resolvedShowSeconds && mode !== "date" ? true : undefined}
+      data-milliseconds={
+        resolvedShowMilliseconds && mode !== "date" ? true : undefined
+      }
     >
       {label != null && (
         <label className="dtp-label" id={labelId} htmlFor={`${labelId}-input`}>
@@ -125,11 +128,11 @@ export function DateTimePicker(props: DateTimePickerProps) {
           <button
             type="button"
             className={[
-              'dtp-clear',
-              value || inputText ? '' : 'dtp-clear--hidden',
+              "dtp-clear",
+              value || inputText ? "" : "dtp-clear--hidden",
             ]
               .filter(Boolean)
-              .join(' ')}
+              .join(" ")}
             aria-label={text.clear}
             aria-hidden={value || inputText ? undefined : true}
             tabIndex={value || inputText ? undefined : -1}
@@ -166,18 +169,18 @@ export function DateTimePicker(props: DateTimePickerProps) {
         >
           <div
             className={[
-              'dtp-views',
-              showCalendar && !showTime ? 'dtp-views--date-only' : '',
-              !showCalendar && showTime ? 'dtp-views--time-only' : '',
+              "dtp-views",
+              showCalendar && !showTime ? "dtp-views--date-only" : "",
+              !showCalendar && showTime ? "dtp-views--time-only" : "",
             ]
               .filter(Boolean)
-              .join(' ')}
+              .join(" ")}
           >
             {showCalendar && (
               <Calendar
                 month={month}
                 value={draft}
-                locale={props.locale ?? 'pl-PL'}
+                locale={props.locale ?? "pl-PL"}
                 timezone={timezone}
                 text={text}
                 showDaysOutsideCurrentMonth={showDaysOutsideCurrentMonth}
@@ -194,7 +197,7 @@ export function DateTimePicker(props: DateTimePickerProps) {
                 onYearChange={onYearChange}
               />
             )}
-            {showTime && timeVariant === 'digital' && (
+            {showTime && timeVariant === "digital" && (
               <DigitalClock
                 value={draft}
                 timezone={timezone}
@@ -210,7 +213,7 @@ export function DateTimePicker(props: DateTimePickerProps) {
                 text={text}
               />
             )}
-            {showTime && timeVariant === 'analog' && (
+            {showTime && timeVariant === "analog" && (
               <AnalogClock
                 value={draft}
                 timezone={timezone}
@@ -244,7 +247,7 @@ export function DateTimePicker(props: DateTimePickerProps) {
                   label={text.cancel}
                   outlined
                   severity="secondary"
-                  onClick={handleClose}
+                  onClick={handleCancel}
                 />
                 <Button type="button" label={text.ok} onClick={handleOk} />
               </div>
@@ -253,5 +256,5 @@ export function DateTimePicker(props: DateTimePickerProps) {
         </div>
       )}
     </div>
-  )
+  );
 }

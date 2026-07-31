@@ -13,6 +13,7 @@ export type {
   DateTimeRangeLocaleText,
   SupportedLocale,
 } from './types'
+export { DateTimePickerPrecision } from '../DateTimePicker/types/precision.types'
 export {
   addCalendarDays,
   addCalendarMonths,

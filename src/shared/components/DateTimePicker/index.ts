@@ -1,4 +1,5 @@
 export { DateTimePicker } from './components'
+export { DateTimePickerPrecision, resolveDateTimePickerPrecision } from './types/precision.types'
 export type {
   DateTimePickerProps,
   DateTimePickerMode,
@@ -9,6 +10,8 @@ export type {
   SupportedLocale,
   TimePickerVariant,
   TimeSteps,
+  DateTimePickerPrecisionValue,
+  ResolvedDateTimePickerPrecision,
 } from './types'
 export {
   parseBackendUtc,

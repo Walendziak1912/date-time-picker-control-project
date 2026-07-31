@@ -29,6 +29,7 @@ import type {
   DateTimePickerView,
   TimeDisableConstraints,
 } from '../types'
+import { resolveDateTimePickerPrecision } from '../types/precision.types'
 
 export function useDateTimePickerController({
   value: valueProp,
@@ -42,7 +43,8 @@ export function useDateTimePickerController({
   readOnly = false,
   ampm = false,
   format: formatProp,
-  mode = 'datetime',
+  mode: modeProp,
+  dateTimePrecision,
   timezone = 'UTC',
   closeOnSelect = false,
   minDate,
@@ -72,6 +74,12 @@ export function useDateTimePickerController({
   helperText,
   onValidationChange,
 }: DateTimePickerProps) {
+  const precisionResolved =
+    dateTimePrecision != null
+      ? resolveDateTimePickerPrecision(dateTimePrecision)
+      : null
+  const mode = modeProp ?? precisionResolved?.mode ?? 'datetime'
+
   const isControlled = valueProp !== undefined
   const isOpenControlled = openProp !== undefined
   const [internalValue, setInternalValue] = useState<Date | null>(defaultValue)
@@ -83,14 +91,19 @@ export function useDateTimePickerController({
   const [fieldError, setFieldError] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  const valueOnOpenRef = useRef<Date | null>(null)
   const labelId = useId()
 
   const value = isControlled ? (valueProp ?? null) : internalValue
   const open = isOpenControlled ? Boolean(openProp) : internalOpen
   const resolvedShowMilliseconds =
-    showMillisecondsProp ?? views.includes('milliseconds')
+    showMillisecondsProp ??
+    precisionResolved?.showMilliseconds ??
+    views.includes('milliseconds')
   const resolvedShowSeconds =
-    showSecondsProp ?? (views.includes('seconds') || resolvedShowMilliseconds)
+    showSecondsProp ??
+    precisionResolved?.showSeconds ??
+    (views.includes('seconds') || resolvedShowMilliseconds)
   const { calendarViews, showCalendar, showTime } = resolvePickerSections(
     mode,
     views,
@@ -207,11 +220,15 @@ export function useDateTimePickerController({
     }
   }, [formattedValue, focused, fieldError])
 
+  const prevOpenRef = useRef(false)
+
   useEffect(() => {
-    if (open) {
+    if (open && !prevOpenRef.current) {
+      valueOnOpenRef.current = value ? new Date(value.getTime()) : null
       setDraft(value)
       setMonth(value ?? new Date())
     }
+    prevOpenRef.current = open
   }, [open, value])
 
   useEffect(() => {
@@ -252,9 +269,24 @@ export function useDateTimePickerController({
     [isOpenControlled, onClose, onOpen],
   )
 
-  const handleClose = useCallback(() => {
+  const closePopover = useCallback(() => {
     setOpenState(false)
   }, [setOpenState])
+
+  const handleDismiss = useCallback(() => {
+    closePopover()
+  }, [closePopover])
+
+  const handleCancel = useCallback(() => {
+    const previous = valueOnOpenRef.current
+    setDraft(previous)
+    setInputText(
+      previous ? formatDateTime(previous, format, ampm, locale, timezone) : '',
+    )
+    setFieldError(false)
+    emitChange(previous, 'view')
+    closePopover()
+  }, [ampm, closePopover, emitChange, format, locale, timezone])
 
   const blurInput = useCallback(() => {
     inputRef.current?.blur()
@@ -266,9 +298,9 @@ export function useDateTimePickerController({
       const normalized = applyValidValue(next)
       emitChange(normalized, 'view')
       onAccept?.(normalized, { source: 'view' })
-      if (shouldClose) handleClose()
+      if (shouldClose) closePopover()
     },
-    [applyValidValue, emitChange, handleClose, onAccept],
+    [applyValidValue, closePopover, emitChange, onAccept],
   )
 
   const handleOpen = useCallback(() => {
@@ -495,7 +527,8 @@ export function useDateTimePickerController({
     dateConstraints,
     timeConstraints,
     isTodayDisabled,
-    handleClose,
+    handleDismiss,
+    handleCancel,
     handleOpen,
     handleSelectDay,
     handleToday,

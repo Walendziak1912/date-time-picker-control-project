@@ -79,6 +79,7 @@ type SharedPickerProps = Pick<
   | "ampm"
   | "format"
   | "mode"
+  | "dateTimePrecision"
   | "timezone"
   | "closeOnSelect"
   | "minutesStep"

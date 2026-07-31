@@ -4,6 +4,7 @@ import type {
   DateTimeChangeContext,
   DateTimeValidationResult,
 } from "../../DateTimePicker";
+import { resolveDateTimePickerPrecision } from "../../DateTimePicker/types/precision.types";
 import {
   buildEndConstraints,
   buildRangeValidationResult,
@@ -29,7 +30,8 @@ export function useDateTimeRangeController(props: DateTimeRangeProps) {
     defaultValue = EMPTY_RANGE,
     onChange,
     onAccept,
-    mode = "datetime",
+    mode: modeProp,
+    dateTimePrecision,
     timezone = "UTC",
     timeVariant = "analog",
     locale = "pl-PL",
@@ -55,6 +57,12 @@ export function useDateTimeRangeController(props: DateTimeRangeProps) {
     flexibility: flexibilityProp,
     defaultFlexibility = 0,
   } = props;
+
+  const precisionResolved =
+    dateTimePrecision != null
+      ? resolveDateTimePickerPrecision(dateTimePrecision)
+      : null;
+  const mode = modeProp ?? precisionResolved?.mode ?? "datetime";
 
   const rangeText = useMemo(
     () => resolveRangeLocaleText(locale, rangeLocaleText),

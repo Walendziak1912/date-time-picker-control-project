@@ -2,22 +2,17 @@ import { useState } from "react";
 import { toast } from "react-toastify";
 import {
   DateTimePicker,
-  serializeBackendUtc,
+  DateTimePickerPrecision,
 } from "../../../components/DateTimePicker";
-import { DateTimeRange } from "../../../components/DateTimeRange";
-import type { DateTimeRangeValue } from "../../../components/DateTimeRange/types/DateTimeRange.types";
+
+const onValidationError = (result: { valid: boolean; message?: string }) => {
+  if (!result.valid) {
+    toast.error(result.message);
+  }
+};
 
 export const ExampleDateTimePicker: React.FC = () => {
   const [datetime, setDatetime] = useState<Date | null>(new Date());
-  const [dateRange, setDateRange] = useState<DateTimeRangeValue>({
-    start: new Date(),
-    end: new Date(),
-  });
-  const [flexRange, setFlexRange] = useState<DateTimeRangeValue>({
-    start: new Date("2026-08-02"),
-    end: new Date("2026-08-06"),
-    flexibility: 0,
-  });
 
   return (
     <>
@@ -28,12 +23,9 @@ export const ExampleDateTimePicker: React.FC = () => {
         <div>
           <h4>Data + czas == dd.MM.yyyy HH:mm</h4>
           <DateTimePicker
+            dateTimePrecision={DateTimePickerPrecision.DateTime}
             onChange={setDatetime}
-            onValidationChange={(result) => {
-              if (!result.valid) {
-                toast.error(result.message);
-              }
-            }}
+            onValidationChange={onValidationError}
           />
           <p className="selected-value">
             Wartość: <code>{datetime?.toISOString()}</code>
@@ -46,13 +38,10 @@ export const ExampleDateTimePicker: React.FC = () => {
             przypadku błędu
           </h4>
           <DateTimePicker
+            dateTimePrecision={DateTimePickerPrecision.DateTime}
             onChange={setDatetime}
-            onValidationChange={(result) => {
-              if (!result.valid) {
-                toast.error(result.message);
-              }
-            }}
-            showBorderFieldWhenError //props dodający czerwoną ramkę w przypadku błędu walidacji
+            onValidationChange={onValidationError}
+            showBorderFieldWhenError
           />
           <p className="selected-value">
             Wartość: <code>{datetime?.toISOString()}</code>
@@ -62,14 +51,10 @@ export const ExampleDateTimePicker: React.FC = () => {
         <div>
           <h4>Data z czasem == dd.MM.yyyy HH:mm:ss</h4>
           <DateTimePicker
+            dateTimePrecision={DateTimePickerPrecision.DateTimeSeconds}
             value={datetime}
             onChange={setDatetime}
-            onValidationChange={(result) => {
-              if (!result.valid) {
-                toast.error(result.message);
-              }
-            }}
-            showSeconds //dla sekund w czasie dodajemy parametr showSeconds
+            onValidationChange={onValidationError}
           />
           <p className="selected-value">
             Wartość: <code>{datetime?.toISOString()}</code>
@@ -79,14 +64,10 @@ export const ExampleDateTimePicker: React.FC = () => {
         <div>
           <h4>Data z czasem == dd.MM.yyyy HH:mm:ss:SSS</h4>
           <DateTimePicker
+            dateTimePrecision={DateTimePickerPrecision.DateTimeMilliseconds}
             value={datetime}
             onChange={setDatetime}
-            onValidationChange={(result) => {
-              if (!result.valid) {
-                toast.error(result.message);
-              }
-            }}
-            showMilliseconds //dla milisekund w czasie dodajemy parametr showMilliseconds
+            onValidationChange={onValidationError}
           />
           <p className="selected-value">
             Wartość: <code>{datetime?.toISOString()}</code>
@@ -96,14 +77,10 @@ export const ExampleDateTimePicker: React.FC = () => {
         <div>
           <h4>Sama Data</h4>
           <DateTimePicker
-            mode="date" //sama data
+            dateTimePrecision={DateTimePickerPrecision.Date}
             value={datetime}
             onChange={setDatetime}
-            onValidationChange={(result) => {
-              if (!result.valid) {
-                toast.error(result.message);
-              }
-            }}
+            onValidationChange={onValidationError}
           />
           <p className="selected-value">
             Wartość: <code>{datetime?.toISOString()}</code>
@@ -113,66 +90,50 @@ export const ExampleDateTimePicker: React.FC = () => {
         <div>
           <h4>Sam czas HH:mm</h4>
           <DateTimePicker
-            mode="time" //sam czas
+            dateTimePrecision={DateTimePickerPrecision.Time}
             value={datetime}
             onChange={setDatetime}
-            onValidationChange={(result) => {
-              if (!result.valid) {
-                toast.error(result.message);
-              }
-            }}
+            onValidationChange={onValidationError}
           />
           <p className="selected-value">
             Wartość: <code>{datetime?.toISOString()}</code>
           </p>
         </div>
+
         <div>
           <h4>Sam czas HH:mm:ss</h4>
           <DateTimePicker
-            mode="time" //sam czas
+            dateTimePrecision={DateTimePickerPrecision.TimeSeconds}
             value={datetime}
             onChange={setDatetime}
-            onValidationChange={(result) => {
-              if (!result.valid) {
-                toast.error(result.message);
-              }
-            }}
-            showSeconds // dla sekund w czasie dodajemy parametr showSeconds
+            onValidationChange={onValidationError}
           />
           <p className="selected-value">
             Wartość: <code>{datetime?.toISOString()}</code>
           </p>
         </div>
+
         <div>
           <h4>Sam czas HH:mm:ss:SSS</h4>
           <DateTimePicker
-            mode="time" //sam czas
+            dateTimePrecision={DateTimePickerPrecision.TimeMilliseconds}
             value={datetime}
             onChange={setDatetime}
-            onValidationChange={(result) => {
-              if (!result.valid) {
-                toast.error(result.message);
-              }
-            }}
-            showMilliseconds //dla milisekund w czasie dodajemy parametr showMilliseconds
+            onValidationChange={onValidationError}
           />
           <p className="selected-value">
             Wartość: <code>{datetime?.toISOString()}</code>
           </p>
         </div>
+
         <div>
-          <h4>Sam czas HH:mm zegar cyfrowy</h4>
+          <h4>Sam czas HH:mm:ss zegar cyfrowy</h4>
           <DateTimePicker
-            mode="time" //sam czas
+            dateTimePrecision={DateTimePickerPrecision.TimeSeconds}
             value={datetime}
             onChange={setDatetime}
-            onValidationChange={(result) => {
-              if (!result.valid) {
-                toast.error(result.message);
-              }
-            }}
-            showSeconds
-            timeVariant="digital" //zegar cyfrowy
+            onValidationChange={onValidationError}
+            timeVariant="digital"
           />
           <p className="selected-value">
             Wartość: <code>{datetime?.toISOString()}</code>
