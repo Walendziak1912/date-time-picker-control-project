@@ -1,0 +1,87 @@
+.dtr {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.35rem;
+    width: 100%;
+    max-width: 100%;
+}
+
+.dtr-fields {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 0.5rem;
+    width: 100%;
+}
+
+.dtr--with-presets .dtr-fields,
+.dtr--with-flex-dates .dtr-fields {
+    flex-wrap: nowrap;
+    align-items: center;
+}
+
+.dtr-presets,
+.dtr-flex-dates {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.35rem;
+    flex: 0 0 auto;
+    width: 12rem;
+}
+
+.dtr-presets-label,
+.dtr-flex-dates-label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--dtp-text, #4b5563);
+}
+
+.dtr-presets-dropdown,
+.dtr-flex-dates-dropdown {
+    width: 100%;
+}
+
+.dtr-fields .dtp {
+    flex: 0 1 auto;
+    min-width: 0;
+    width: fit-content;
+    max-width: 100%;
+}
+
+.dtr-separator {
+    flex: 0 0 auto;
+    align-self: center;
+    color: var(--dtp-muted, #6b7280);
+    font-size: 0.875rem;
+    line-height: 1;
+    user-select: none;
+}
+
+.dtr-field-error {
+    color: var(--dtp-error, #e24c4c);
+    font-size: 0.75rem;
+    line-height: 1.35;
+}
+
+.dtr[data-disabled] {
+    opacity: 0.55;
+    pointer-events: none;
+}
+
+@media (width <= 640px) {
+    .dtr--with-presets .dtr-fields,
+    .dtr--with-flex-dates .dtr-fields {
+        flex-wrap: wrap;
+    }
+
+    .dtr-fields {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .dtr-separator {
+        align-self: center;
+    }
+}
