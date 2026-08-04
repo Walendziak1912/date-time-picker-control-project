@@ -6,6 +6,11 @@ import type {
 } from "../../DateTimePicker";
 import { resolveDateTimePickerPrecision } from "../../DateTimePicker/types/precision.types";
 import {
+  normalizeDateTimePrecisions,
+  resolveActiveDateTimePrecision,
+  type DateTimePickerPrecisionValue,
+} from "../../DateTimePicker/types/precision.types";
+import {
   buildEndConstraints,
   buildRangeValidationResult,
   buildStartConstraints,
@@ -31,7 +36,10 @@ export function useDateTimeRangeController(props: DateTimeRangeProps) {
     onChange,
     onAccept,
     mode: modeProp,
+    dateTimePrecisions,
     dateTimePrecision,
+    selectedDateTimePrecision: selectedDateTimePrecisionProp,
+    onDateTimePrecisionChange,
     timezone = "UTC",
     timeVariant = "analog",
     locale = "pl-PL",
@@ -58,11 +66,55 @@ export function useDateTimeRangeController(props: DateTimeRangeProps) {
     defaultFlexibility = 0,
   } = props;
 
+  const availablePrecisions = useMemo(
+    () => normalizeDateTimePrecisions(dateTimePrecisions ?? dateTimePrecision),
+    [dateTimePrecisions, dateTimePrecision],
+  );
+  const defaultPrecision = availablePrecisions[0] ?? null;
+  const isPrecisionControlled = selectedDateTimePrecisionProp !== undefined;
+  const [internalPrecision, setInternalPrecision] =
+    useState<DateTimePickerPrecisionValue | null>(defaultPrecision);
+
+  const activePrecision = resolveActiveDateTimePrecision(availablePrecisions, {
+    isControlled: isPrecisionControlled,
+    selected: selectedDateTimePrecisionProp,
+    internal: internalPrecision,
+  });
+
   const precisionResolved =
-    dateTimePrecision != null
-      ? resolveDateTimePickerPrecision(dateTimePrecision)
+    activePrecision != null
+      ? resolveDateTimePickerPrecision(activePrecision)
       : null;
   const mode = modeProp ?? precisionResolved?.mode ?? "datetime";
+
+  useEffect(() => {
+    if (isPrecisionControlled) return;
+    if (availablePrecisions.length === 0) {
+      if (internalPrecision != null) setInternalPrecision(null);
+      return;
+    }
+    if (
+      internalPrecision != null &&
+      availablePrecisions.includes(internalPrecision)
+    ) {
+      return;
+    }
+    setInternalPrecision(availablePrecisions[0]);
+  }, [
+    availablePrecisions,
+    internalPrecision,
+    isPrecisionControlled,
+  ]);
+
+  const handleDateTimePrecisionChange = useCallback(
+    (precision: DateTimePickerPrecisionValue) => {
+      if (!isPrecisionControlled) {
+        setInternalPrecision(precision);
+      }
+      onDateTimePrecisionChange?.(precision);
+    },
+    [isPrecisionControlled, onDateTimePrecisionChange],
+  );
 
   const rangeText = useMemo(
     () => resolveRangeLocaleText(locale, rangeLocaleText),
@@ -254,6 +306,9 @@ export function useDateTimeRangeController(props: DateTimeRangeProps) {
       timeVariant,
       locale,
       localeText,
+      dateTimePrecisions: availablePrecisions.length > 0 ? availablePrecisions : undefined,
+      selectedDateTimePrecision: activePrecision ?? undefined,
+      onDateTimePrecisionChange: handleDateTimePrecisionChange,
     },
     startProps,
     endProps,

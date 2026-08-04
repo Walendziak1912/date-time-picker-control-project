@@ -38,6 +38,49 @@ export const ExampleDateTimeRange: React.FC = () => {
           <h1>DateTimeRange</h1>
         </header>
         <div>
+          <h4>
+            Przełącznik precyzji 2 tryby (data oraz data + czas milisekundy)
+            InputSwitch
+          </h4>
+          <DateTimeRange
+            dateTimePrecisions={[
+              DateTimePickerPrecision.Date,
+              DateTimePickerPrecision.DateTimeMilliseconds,
+            ]}
+            value={dateRange}
+            onChange={setDateRange}
+            onValidationChange={onValidationError}
+            showBorderFieldWhenError
+          />
+          <p>
+            Wartość:{" "}
+            <code>
+              {dateRange.start?.toISOString()} - {dateRange.end?.toISOString()}
+            </code>
+          </p>
+        </div>
+        <div>
+          <h4>Przełącznik precyzji wicej niż 2 tryby </h4>
+          <DateTimeRange
+            dateTimePrecisions={[
+              DateTimePickerPrecision.Date,
+              DateTimePickerPrecision.DateTime,
+              DateTimePickerPrecision.DateTimeSeconds,
+              DateTimePickerPrecision.DateTimeMilliseconds,
+            ]}
+            value={dateRange}
+            onChange={setDateRange}
+            onValidationChange={onValidationError}
+            showBorderFieldWhenError
+          />
+          <p>
+            Wartość:{" "}
+            <code>
+              {dateRange.start?.toISOString()} - {dateRange.end?.toISOString()}
+            </code>
+          </p>
+        </div>
+        <div>
           <h4>Zakres podstawowy dat z czerwoną ramką i toastem</h4>
           <DateTimeRange
             dateTimePrecision={DateTimePickerPrecision.DateTimeSeconds}

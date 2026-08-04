@@ -4,6 +4,7 @@ import { AnalogClock } from "./AnalogClock";
 import { Calendar } from "./Calendar";
 import { CalendarIcon } from "./CalendarIcon";
 import { DigitalClock } from "./DigitalClock";
+import { PrecisionSwitcher } from "./PrecisionSwitcher";
 import {
   useDateTimePickerController,
   usePopoverDismiss,
@@ -78,6 +79,10 @@ export function DateTimePicker(props: DateTimePickerProps) {
     onFieldKeyDown,
     onFieldFocus,
     onPopoverMouseDown,
+    availablePrecisions,
+    activePrecision,
+    showPrecisionSwitcher,
+    handlePrecisionChange,
   } = controller;
 
   const popoverRef = useRef<HTMLDivElement>(null);
@@ -167,6 +172,16 @@ export function DateTimePicker(props: DateTimePickerProps) {
           data-placement={popoverPlacement}
           onMouseDown={onPopoverMouseDown}
         >
+          {showPrecisionSwitcher && activePrecision != null && (
+            <PrecisionSwitcher
+              options={availablePrecisions}
+              value={activePrecision}
+              locale={props.locale ?? "pl-PL"}
+              precisionLabels={text.precisionLabels}
+              disabled={disabled || readOnly}
+              onChange={handlePrecisionChange}
+            />
+          )}
           <div
             className={[
               "dtp-views",

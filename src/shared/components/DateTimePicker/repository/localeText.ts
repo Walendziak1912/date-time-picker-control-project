@@ -2,7 +2,7 @@ import { normalizeLocale, type SupportedLocale } from "../types/locale.types";
 import { getMonthLabels, getWeekdayLabels } from "./dateUtils";
 import type { DateTimePickerLocaleText, ResolvedLocaleText } from "../types/localeText.types";
 
-function defaultsForLocale(locale: SupportedLocale): Omit<ResolvedLocaleText, "weekdayLabels" | "monthLabels"> {
+function defaultsForLocale(locale: SupportedLocale): Omit<ResolvedLocaleText, "weekdayLabels" | "monthLabels" | "precisionLabels"> {
     const pl = locale === "pl-PL";
     return {
         cancel: pl ? "Anuluj" : "Cancel",
@@ -48,5 +48,6 @@ export function resolveLocaleText(locale?: string, overrides?: DateTimePickerLoc
         milliseconds: overrides?.milliseconds ?? base.milliseconds,
         meridiem: overrides?.meridiem ?? base.meridiem,
         invalidFormat: overrides?.invalidFormat ?? base.invalidFormat,
+        precisionLabels: overrides?.precisionLabels ?? {},
     };
 }

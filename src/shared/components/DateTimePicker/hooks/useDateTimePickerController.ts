@@ -30,6 +30,12 @@ import type {
   TimeDisableConstraints,
 } from '../types'
 import { resolveDateTimePickerPrecision } from '../types/precision.types'
+import {
+  adjustValueForPrecisionChange,
+  normalizeDateTimePrecisions,
+  resolveActiveDateTimePrecision,
+  type DateTimePickerPrecisionValue,
+} from '../types/precision.types'
 
 export function useDateTimePickerController({
   value: valueProp,
@@ -44,7 +50,10 @@ export function useDateTimePickerController({
   ampm = false,
   format: formatProp,
   mode: modeProp,
+  dateTimePrecisions,
   dateTimePrecision,
+  selectedDateTimePrecision: selectedDateTimePrecisionProp,
+  onDateTimePrecisionChange,
   timezone = 'UTC',
   closeOnSelect = false,
   minDate,
@@ -74,11 +83,26 @@ export function useDateTimePickerController({
   helperText,
   onValidationChange,
 }: DateTimePickerProps) {
+  const availablePrecisions = useMemo(
+    () => normalizeDateTimePrecisions(dateTimePrecisions ?? dateTimePrecision),
+    [dateTimePrecisions, dateTimePrecision],
+  )
+  const defaultPrecision = availablePrecisions[0] ?? null
+  const isPrecisionControlled = selectedDateTimePrecisionProp !== undefined
+  const [internalPrecision, setInternalPrecision] =
+    useState<DateTimePickerPrecisionValue | null>(defaultPrecision)
+
+  const activePrecision = resolveActiveDateTimePrecision(availablePrecisions, {
+    isControlled: isPrecisionControlled,
+    selected: selectedDateTimePrecisionProp,
+    internal: internalPrecision,
+  })
+
   const precisionResolved =
-    dateTimePrecision != null
-      ? resolveDateTimePickerPrecision(dateTimePrecision)
+    activePrecision != null
+      ? resolveDateTimePickerPrecision(activePrecision)
       : null
-  const mode = modeProp ?? precisionResolved?.mode ?? 'datetime'
+  const mode = modeProp ?? precisionResolved?.mode ?? 'date'
 
   const isControlled = valueProp !== undefined
   const isOpenControlled = openProp !== undefined
@@ -213,6 +237,21 @@ export function useDateTimePickerController({
   )
 
   const prevControlledValueRef = useRef<number | null | undefined>(undefined)
+
+  useEffect(() => {
+    if (isPrecisionControlled) return
+    if (availablePrecisions.length === 0) {
+      if (internalPrecision != null) setInternalPrecision(null)
+      return
+    }
+    if (
+      internalPrecision != null &&
+      availablePrecisions.includes(internalPrecision)
+    ) {
+      return
+    }
+    setInternalPrecision(availablePrecisions[0])
+  }, [availablePrecisions, internalPrecision, isPrecisionControlled])
 
   useEffect(() => {
     if (!focused && !fieldError) {
@@ -484,6 +523,98 @@ export function useDateTimePickerController({
     [blurInput],
   )
 
+  const handlePrecisionChange = useCallback(
+    (nextPrecision: DateTimePickerPrecisionValue) => {
+      if (activePrecision == null || nextPrecision === activePrecision) return
+
+      const nextResolved = resolveDateTimePickerPrecision(nextPrecision)
+      const nextMode = modeProp ?? nextResolved.mode ?? 'datetime'
+      const nextShowMilliseconds =
+        showMillisecondsProp ??
+        nextResolved.showMilliseconds ??
+        views.includes('milliseconds')
+      const nextShowSeconds =
+        showSecondsProp ??
+        nextResolved.showSeconds ??
+        (views.includes('seconds') || nextShowMilliseconds)
+      const nextFormat =
+        formatProp ??
+        defaultFormat(nextMode, ampm, nextShowSeconds, nextShowMilliseconds)
+
+      const adjustedDraft = adjustValueForPrecisionChange(
+        draft,
+        activePrecision,
+        nextPrecision,
+        timezone,
+      )
+      let normalizedDraft = adjustedDraft
+      if (normalizedDraft) {
+        if (nextMode === 'date') {
+          normalizedDraft = startOfDayTz(normalizedDraft, timezone)
+        }
+        if (!nextShowSeconds) {
+          normalizedDraft = withoutSecondsTz(normalizedDraft, timezone)
+        }
+        if (!nextShowMilliseconds) {
+          normalizedDraft = withoutMillisecondsTz(normalizedDraft, timezone)
+        }
+      }
+
+      if (!isPrecisionControlled) {
+        setInternalPrecision(nextPrecision)
+      }
+      onDateTimePrecisionChange?.(nextPrecision)
+
+      setDraft(normalizedDraft)
+      setInputText(
+        normalizedDraft
+          ? formatDateTime(normalizedDraft, nextFormat, ampm, locale, timezone)
+          : '',
+      )
+      setFieldError(false)
+      reportValidation(true)
+
+      const adjustedValue = adjustValueForPrecisionChange(
+        value,
+        activePrecision,
+        nextPrecision,
+        timezone,
+      )
+      let normalizedValue = adjustedValue
+      if (normalizedValue) {
+        if (nextMode === 'date') {
+          normalizedValue = startOfDayTz(normalizedValue, timezone)
+        }
+        if (!nextShowSeconds) {
+          normalizedValue = withoutSecondsTz(normalizedValue, timezone)
+        }
+        if (!nextShowMilliseconds) {
+          normalizedValue = withoutMillisecondsTz(normalizedValue, timezone)
+        }
+      }
+      emitChange(normalizedValue, 'view')
+    },
+    [
+      activePrecision,
+      ampm,
+      draft,
+      emitChange,
+      formatProp,
+      isPrecisionControlled,
+      locale,
+      modeProp,
+      onDateTimePrecisionChange,
+      reportValidation,
+      showMillisecondsProp,
+      showSecondsProp,
+      timezone,
+      value,
+      views,
+    ],
+  )
+
+  const showPrecisionSwitcher = availablePrecisions.length > 1
+
   const calendarOpenTo =
     openTo === 'year' || openTo === 'month' || openTo === 'day' ? openTo : undefined
 
@@ -541,6 +672,10 @@ export function useDateTimePickerController({
     onFieldKeyDown,
     onFieldFocus,
     onPopoverMouseDown,
+    availablePrecisions,
+    activePrecision,
+    showPrecisionSwitcher,
+    handlePrecisionChange,
   }
 }
 
