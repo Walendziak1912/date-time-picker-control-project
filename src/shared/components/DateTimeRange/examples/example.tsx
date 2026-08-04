@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { toast } from "react-toastify";
-import { DateTimePickerPrecision, serializeBackendUtc } from "../../../components/DateTimePicker";
+import {
+  DateTimePickerPrecision,
+  serializeBackendUtc,
+} from "../../../components/DateTimePicker";
 import { DateTimeRange } from "../../../components/DateTimeRange";
 import type { DateTimeRangeValue } from "../../../components/DateTimeRange/types";
 
@@ -20,7 +23,9 @@ export const ExampleDateTimeRange: React.FC = () => {
   // data końcowa to stały punkt odniesienia
   // użytkownik może wybrać zakres cofnięty maksymalnie o 48 godzin względem tej daty
   const emissionDate = new Date("2026-07-29T12:00:00");
-  const emissionMinDateTime = new Date(emissionDate.getTime() - 48 * 60 * 60 * 1000);
+  const emissionMinDateTime = new Date(
+    emissionDate.getTime() - 48 * 60 * 60 * 1000,
+  );
   const [emissionRange, setEmissionRange] = useState<DateTimeRangeValue>({
     start: new Date(emissionDate.getTime() - 24 * 60 * 60 * 1000),
     end: emissionDate,
@@ -35,7 +40,7 @@ export const ExampleDateTimeRange: React.FC = () => {
         <div>
           <h4>Zakres podstawowy dat z czerwoną ramką i toastem</h4>
           <DateTimeRange
-            dateTimePrecision={DateTimePickerPrecision.Date}
+            dateTimePrecision={DateTimePickerPrecision.DateTimeSeconds}
             value={dateRange}
             onChange={setDateRange}
             onValidationChange={onValidationError}
@@ -147,7 +152,8 @@ export const ExampleDateTimeRange: React.FC = () => {
         <div>
           <h4>Analiza do 48h wstecz od daty emisji</h4>
           <p>
-            Data emisji: <code>{serializeBackendUtc(emissionDate)}</code> — dozwolony zakres od{" "}
+            Data emisji: <code>{serializeBackendUtc(emissionDate)}</code> —
+            dozwolony zakres od{" "}
             <code>{serializeBackendUtc(emissionMinDateTime)}</code> do{" "}
             <code>{serializeBackendUtc(emissionDate)}</code>
           </p>
@@ -164,7 +170,8 @@ export const ExampleDateTimeRange: React.FC = () => {
           <p>
             Wartość:{" "}
             <code>
-              {emissionRange.start?.toISOString()} - {emissionRange.end?.toISOString()}
+              {emissionRange.start?.toISOString()} -{" "}
+              {emissionRange.end?.toISOString()}
             </code>
           </p>
         </div>

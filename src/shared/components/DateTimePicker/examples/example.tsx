@@ -26,6 +26,7 @@ export const ExampleDateTimePicker: React.FC = () => {
             dateTimePrecision={DateTimePickerPrecision.DateTime}
             onChange={setDatetime}
             onValidationChange={onValidationError}
+            showBorderFieldWhenError
           />
           <p className="selected-value">
             Wartość: <code>{datetime?.toISOString()}</code>
