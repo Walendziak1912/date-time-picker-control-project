@@ -700,6 +700,43 @@
   color: var(--dtp-error);
 }
 
+.dtp-precision-switch {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--dtp-divider);
+}
+
+.dtp-precision-switch-label {
+  font-size: 0.875rem;
+  color: var(--dtp-muted);
+  transition: color var(--dtp-transition);
+}
+
+.dtp-precision-switch-label--active {
+  color: var(--dtp-text);
+  font-weight: 600;
+}
+
+.dtp-precision-dropdown {
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--dtp-divider);
+}
+
+.dtp-precision-dropdown-control {
+  width: 100%;
+}
+
+.dtp-precision-dropdown-control .p-dropdown {
+  width: 100%;
+}
+
+.dtp-precision-dropdown-panel {
+  z-index: 30;
+}
+
 .dtp[data-error] .dtp-field {
   border-color: var(--dtp-error);
 }

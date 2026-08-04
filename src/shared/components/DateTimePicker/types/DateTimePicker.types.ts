@@ -2,7 +2,10 @@ import type { ReactNode } from "react";
 
 import type { SupportedLocale } from "./locale.types";
 import type { DateTimePickerLocaleText } from "./localeText.types";
-import type { DateTimePickerPrecisionValue } from "./precision.types";
+import type {
+  DateTimePickerPrecisionValue,
+  DateTimePrecisionsInput,
+} from "./precision.types";
 
 export type DateTimePickerTimezone = "UTC" | "system";
 
@@ -60,8 +63,14 @@ export type DateTimePickerProps = {
   //"datetime" oba (domyślnie)
   mode?: DateTimePickerMode;
   //Uproszczone sterowanie trybem wyświetlania (nadpisuje mode/showSeconds/showMilliseconds gdy te nie są podane)
-  //Przykład: dateTimePrecision={DateTimePickerPrecision.DateTimeSeconds}
+  //Przykład: dateTimePrecisions={DateTimePickerPrecision.DateTimeSeconds}
+  //Przykład wielu trybów: dateTimePrecisions={[DateTimePickerPrecision.Date, DateTimePickerPrecision.DateTime]}
+  dateTimePrecisions?: DateTimePrecisionsInput;
+  /** @deprecated Użyj dateTimePrecisions */
   dateTimePrecision?: DateTimePickerPrecisionValue;
+  //Aktywna precyzja (kontrolowana). Bez tego propsa komponent zarządza wyborem samodzielnie.
+  selectedDateTimePrecision?: DateTimePickerPrecisionValue;
+  onDateTimePrecisionChange?: (precision: DateTimePickerPrecisionValue) => void;
   // timezone - strefa wyświetlania/edycji jak "timezone" w MUI X
   //"UTC" (domyślnie) kalendarz i zegar w UTC
   //"system" kalendarz i zegar w strefie lokalnej użytkownika

@@ -1,4 +1,11 @@
 import type { DateTimePickerMode } from "./DateTimePicker.types";
+import type { SupportedLocale } from "./locale.types";
+import {
+    startOfDayTz,
+    withoutMillisecondsTz,
+    withoutSecondsTz,
+} from "../repository/timezone";
+import type { DateTimePickerTimezone } from "./DateTimePicker.types";
 
 export const DateTimePickerPrecision = {
     //Tylko data (kalendarz), format dd.MM.yyyy
@@ -42,4 +49,92 @@ export function resolveDateTimePickerPrecision(precision: DateTimePickerPrecisio
         case DateTimePickerPrecision.TimeMilliseconds:
             return { mode: "time", showSeconds: true, showMilliseconds: true };
     }
+}
+
+export type DateTimePrecisionsInput =
+    | DateTimePickerPrecisionValue
+    | DateTimePickerPrecisionValue[];
+
+export function normalizeDateTimePrecisions(
+    input?: DateTimePrecisionsInput,
+): DateTimePickerPrecisionValue[] {
+    if (input == null) return [];
+    return Array.isArray(input) ? input : [input];
+}
+
+export function resolveActiveDateTimePrecision(
+    availablePrecisions: DateTimePickerPrecisionValue[],
+    options: {
+        isControlled: boolean;
+        selected?: DateTimePickerPrecisionValue;
+        internal: DateTimePickerPrecisionValue | null;
+    },
+): DateTimePickerPrecisionValue | null {
+    if (availablePrecisions.length === 0) return null;
+
+    const fallback = availablePrecisions[0];
+    if (options.isControlled) {
+        return options.selected ?? fallback;
+    }
+
+    const candidate = options.internal ?? fallback;
+    return availablePrecisions.includes(candidate) ? candidate : fallback;
+}
+
+export function getDefaultPrecisionLabel(
+    precision: DateTimePickerPrecisionValue,
+    locale: SupportedLocale = "pl-PL",
+): string {
+    const pl = locale === "pl-PL";
+    switch (precision) {
+        case DateTimePickerPrecision.Date:
+            return pl ? "Data" : "Date";
+        case DateTimePickerPrecision.DateTime:
+            return pl ? "Minuty" : "Minutes";
+        case DateTimePickerPrecision.DateTimeSeconds:
+            return pl ? "Sekundy" : "Seconds";
+        case DateTimePickerPrecision.DateTimeMilliseconds:
+            return pl ? "Milisekundy" : "Milliseconds";
+        case DateTimePickerPrecision.Time:
+            return pl ? "Minuty" : "Minutes";
+        case DateTimePickerPrecision.TimeSeconds:
+            return pl ? "Sekundy" : "Seconds";
+        case DateTimePickerPrecision.TimeMilliseconds:
+            return pl ? "Milisekundy" : "Milliseconds";
+    }
+}
+
+export function adjustValueForPrecisionChange(
+    value: Date | null,
+    from: DateTimePickerPrecisionValue,
+    to: DateTimePickerPrecisionValue,
+    timezone: DateTimePickerTimezone,
+): Date | null {
+    if (!value) return value;
+
+    const fromResolved = resolveDateTimePickerPrecision(from);
+    const toResolved = resolveDateTimePickerPrecision(to);
+    let result = value;
+
+    if (toResolved.mode === "date") {
+        return startOfDayTz(result, timezone);
+    }
+
+    if (fromResolved.mode === "date") {
+        result = startOfDayTz(result, timezone);
+    }
+
+    if (!toResolved.showSeconds) {
+        result = withoutSecondsTz(result, timezone);
+    } else if (!fromResolved.showSeconds) {
+        result = withoutSecondsTz(result, timezone);
+    }
+
+    if (!toResolved.showMilliseconds) {
+        result = withoutMillisecondsTz(result, timezone);
+    } else if (!fromResolved.showMilliseconds) {
+        result = withoutMillisecondsTz(result, timezone);
+    }
+
+    return result;
 }

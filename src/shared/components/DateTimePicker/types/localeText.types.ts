@@ -1,3 +1,5 @@
+import type { DateTimePickerPrecisionValue } from "./precision.types";
+
 export type DateTimePickerLocaleText = {
   //7 etykiet od poniedziałku do niedzieli
   weekdayLabels?: string[];
@@ -20,6 +22,7 @@ export type DateTimePickerLocaleText = {
   milliseconds?: string;
   meridiem?: string;
   invalidFormat?: string;
+  precisionLabels?: Partial<Record<DateTimePickerPrecisionValue, string>>;
 };
 
 export type ResolvedLocaleText = {
@@ -42,4 +45,5 @@ export type ResolvedLocaleText = {
   milliseconds: string;
   meridiem: string;
   invalidFormat: string;
+  precisionLabels: Partial<Record<DateTimePickerPrecisionValue, string>>;
 };
