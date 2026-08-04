@@ -30,10 +30,10 @@ export const ExampleDateTimePicker: React.FC = () => {
             InputSwitch
           </h4>
           <DateTimePicker
-            // dateTimePrecisions={[
-            //   DateTimePickerPrecision.Date,
-            //   DateTimePickerPrecision.DateTimeMilliseconds,
-            // ]}
+            dateTimePrecisions={[
+              DateTimePickerPrecision.Date,
+              DateTimePickerPrecision.DateTimeMilliseconds,
+            ]}
             onChange={setDatetime}
             onValidationChange={onValidationError}
             showBorderFieldWhenError
