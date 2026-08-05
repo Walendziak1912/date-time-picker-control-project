@@ -152,14 +152,21 @@ export function DateTimeRange(props: DateTimeRangeProps) {
     validationResult,
   });
 
+  //aktywna precyzja propagowana także w kontekście presetów czy elastycznych dat
+  //aby użytkownik miał spójną informację o precyzji niezależnie od źródła zmiany
+  const activePrecision = sharedPickerConfig.selectedDateTimePrecision ?? null;
+
   const handlePresetSelect = (key: DateTimeRangePresetKey) => {
     const nextRange = presets.resolvePresetRange(key);
     presets.setPreset(key);
     applyRangeValue(nextRange, {
       source: "preset",
-      change: { source: "unknown" },
+      change: { source: "unknown", precision: activePrecision },
     });
-    onAccept?.(nextRange, { source: "preset", change: { source: "unknown" } });
+    onAccept?.(nextRange, {
+      source: "preset",
+      change: { source: "unknown", precision: activePrecision },
+    });
   };
 
   const handleFlexDatesSelect = (nextFlexibility: DateTimeRangeFlexibility) => {
@@ -167,11 +174,11 @@ export function DateTimeRange(props: DateTimeRangeProps) {
     const nextRange = { ...rangeValue, flexibility: nextFlexibility };
     applyRangeValue(nextRange, {
       source: "flexDates",
-      change: { source: "unknown" },
+      change: { source: "unknown", precision: activePrecision },
     });
     onAccept?.(nextRange, {
       source: "flexDates",
-      change: { source: "unknown" },
+      change: { source: "unknown", precision: activePrecision },
     });
   };
 

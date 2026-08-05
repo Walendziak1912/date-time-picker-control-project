@@ -291,12 +291,16 @@ export function useDateTimePickerController({
   }, [isControlled, value, formattedValue, reportValidation])
 
   const emitChange = useCallback(
-    (next: Date | null, source: 'field' | 'view' | 'unknown') => {
+    (
+      next: Date | null,
+      source: 'field' | 'view' | 'unknown',
+      precision: DateTimePickerPrecisionValue | null = activePrecision,
+    ) => {
       const normalized = normalizeValue(next)
       if (!isControlled) setInternalValue(normalized)
-      onChange?.(normalized, { source })
+      onChange?.(normalized, { source, precision })
     },
-    [isControlled, normalizeValue, onChange],
+    [activePrecision, isControlled, normalizeValue, onChange],
   )
 
   const setOpenState = useCallback(
@@ -592,7 +596,7 @@ export function useDateTimePickerController({
           normalizedValue = withoutMillisecondsTz(normalizedValue, timezone)
         }
       }
-      emitChange(normalizedValue, 'view')
+      emitChange(normalizedValue, 'view', nextPrecision)
     },
     [
       activePrecision,

@@ -32,6 +32,8 @@ export type TimeSteps = {
 
 export type DateTimeChangeContext = {
   source: "field" | "view" | "unknown";
+  //aktywna precyzja
+  precision?: DateTimePickerPrecisionValue | null;
 };
 
 export type DateTimeValidationReason = "invalidFormat";
