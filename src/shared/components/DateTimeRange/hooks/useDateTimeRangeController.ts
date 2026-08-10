@@ -4,6 +4,11 @@ import type {
   DateTimeChangeContext,
   DateTimeValidationResult,
 } from "../../DateTimePicker";
+import {
+  endOfDayTz,
+  nowInTimezone,
+  startOfDayTz,
+} from "../../DateTimePicker/repository";
 import { resolveDateTimePickerPrecision } from "../../DateTimePicker/types/precision.types";
 import {
   normalizeDateTimePrecisions,
@@ -64,6 +69,7 @@ export function useDateTimeRangeController(props: DateTimeRangeProps) {
     showFlexDates = false,
     flexibility: flexibilityProp,
     defaultFlexibility = 0,
+    useEndOfDayAsRangeEnd = true,
   } = props;
 
   const availablePrecisions = useMemo(
@@ -105,16 +111,6 @@ export function useDateTimeRangeController(props: DateTimeRangeProps) {
     internalPrecision,
     isPrecisionControlled,
   ]);
-
-  const handleDateTimePrecisionChange = useCallback(
-    (precision: DateTimePickerPrecisionValue) => {
-      if (!isPrecisionControlled) {
-        setInternalPrecision(precision);
-      }
-      onDateTimePrecisionChange?.(precision);
-    },
-    [isPrecisionControlled, onDateTimePrecisionChange],
-  );
 
   const rangeText = useMemo(
     () => resolveRangeLocaleText(locale, rangeLocaleText),
@@ -193,6 +189,56 @@ export function useDateTimeRangeController(props: DateTimeRangeProps) {
       onChange?.(resolved, context);
     },
     [isControlled, onChange, resolveFlexRange],
+  );
+
+  const handleDateTimePrecisionChange = useCallback(
+    (nextPrecision: DateTimePickerPrecisionValue) => {
+      const previousPrecision = activePrecision;
+
+      if (!isPrecisionControlled) {
+        setInternalPrecision(nextPrecision);
+      }
+      onDateTimePrecisionChange?.(nextPrecision);
+
+      if (
+        !useEndOfDayAsRangeEnd ||
+        previousPrecision == null ||
+        previousPrecision === nextPrecision
+      ) {
+        return;
+      }
+
+      const fromMode = resolveDateTimePickerPrecision(previousPrecision).mode;
+      const toMode = resolveDateTimePickerPrecision(nextPrecision).mode;
+      if (fromMode !== "date" || toMode === "date") {
+        return;
+      }
+
+      const fallback = nowInTimezone(timezone);
+      const startRef = value.start ?? value.end ?? fallback;
+      const endRef = value.end ?? value.start ?? fallback;
+      const nextRange = {
+        ...value,
+        start: startOfDayTz(startRef, timezone),
+        end: endOfDayTz(endRef, timezone),
+      };
+
+      queueMicrotask(() => {
+        commitValue(nextRange, {
+          source: "start",
+          change: { source: "view", precision: nextPrecision },
+        });
+      });
+    },
+    [
+      activePrecision,
+      commitValue,
+      useEndOfDayAsRangeEnd,
+      isPrecisionControlled,
+      onDateTimePrecisionChange,
+      timezone,
+      value,
+    ],
   );
 
   const handleStartChange = useCallback(

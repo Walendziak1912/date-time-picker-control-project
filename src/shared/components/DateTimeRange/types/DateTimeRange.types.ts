@@ -178,6 +178,8 @@ export type DateTimeRangeProps = SharedPickerProps & {
   flexDatesClassName?: string;
   //nadpisanie domyślnych etykiet zakresu
   rangeLocaleText?: DateTimeRangeLocaleText;
+  //false zachowanie z bieżącą godziną w polu końcowym domyślnie jest true, czyli zachowanie z końcem dnia w polu końcowym
+  useEndOfDayAsRangeEnd?: boolean;
 };
 
 export type DateTimeRangeConstraintMode = DateTimePickerMode;
