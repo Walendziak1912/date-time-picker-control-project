@@ -37,6 +37,7 @@ export {
   setTimePartTz,
   setYearPartTz,
   startOfDayTz,
+  endOfDayTz,
   withoutSecondsTz,
   withoutMillisecondsTz,
 } from './timezone'

@@ -1,5 +1,6 @@
 import {
   createInstant,
+  endOfDayTz,
   getDate,
   getHours,
   getMilliseconds,
@@ -55,21 +56,6 @@ export function buildDefaultPresetOptions(
 }
 
 export const DEFAULT_PRESET_OPTIONS = buildDefaultPresetOptions("pl-PL");
-
-function endOfDayTz(date: Date, timezone: DateTimePickerTimezone): Date {
-  return createInstant(
-    {
-      year: getYear(date, timezone),
-      month: getMonth(date, timezone),
-      date: getDate(date, timezone),
-      hours: 23,
-      minutes: 59,
-      seconds: 59,
-      milliseconds: 999,
-    },
-    timezone,
-  );
-}
 
 function addDaysTz(
   date: Date,

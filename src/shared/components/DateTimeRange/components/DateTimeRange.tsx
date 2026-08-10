@@ -60,6 +60,7 @@ export function DateTimeRange(props: DateTimeRangeProps) {
     flexDatesClassName,
     timezone = "UTC",
     rangeLocaleText,
+    useEndOfDayAsRangeEnd,
     ...pickerProps
   } = props;
 
@@ -93,6 +94,7 @@ export function DateTimeRange(props: DateTimeRangeProps) {
     flexibility,
     defaultFlexibility,
     timezone,
+    useEndOfDayAsRangeEnd,
     ...pickerProps,
   });
 

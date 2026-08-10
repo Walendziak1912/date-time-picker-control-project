@@ -27,4 +27,5 @@ export {
   getSeconds,
   getYear,
   startOfDayTz,
+  endOfDayTz,
 } from './repository'

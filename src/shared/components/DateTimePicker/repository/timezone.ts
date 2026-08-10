@@ -190,6 +190,21 @@ export function startOfDayTz(date: Date, timezone: DateTimePickerTimezone): Date
     );
 }
 
+export function endOfDayTz(date: Date, timezone: DateTimePickerTimezone): Date {
+    return createInstant(
+        {
+            year: getYear(date, timezone),
+            month: getMonth(date, timezone),
+            date: getDate(date, timezone),
+            hours: 23,
+            minutes: 59,
+            seconds: 59,
+            milliseconds: 999,
+        },
+        timezone,
+    );
+}
+
 export function addMonthsTz(date: Date, amount: number, timezone: DateTimePickerTimezone): Date {
     if (timezone === "UTC") {
         return createInstant(
