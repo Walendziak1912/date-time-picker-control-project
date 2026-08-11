@@ -61,6 +61,8 @@ export function DateTimeRange(props: DateTimeRangeProps) {
     timezone = "UTC",
     rangeLocaleText,
     useEndOfDayAsRangeEnd,
+    fillRequired,
+    validationRules,
     ...pickerProps
   } = props;
 
@@ -95,6 +97,8 @@ export function DateTimeRange(props: DateTimeRangeProps) {
     defaultFlexibility,
     timezone,
     useEndOfDayAsRangeEnd,
+    fillRequired,
+    validationRules,
     ...pickerProps,
   });
 
@@ -145,6 +149,7 @@ export function DateTimeRange(props: DateTimeRangeProps) {
     disabled,
     readOnly,
     showTextUnderFieldWhenError,
+    validationRules,
     ...sharedPickerConfig,
     ...pickerProps,
   };

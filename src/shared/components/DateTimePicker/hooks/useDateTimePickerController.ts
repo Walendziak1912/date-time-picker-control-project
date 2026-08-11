@@ -23,6 +23,11 @@ import {
   withoutMillisecondsTz,
   nowInTimezone,
 } from '../repository'
+import {
+  FillRequired,
+  isPickerDateRequired,
+  resolveValidationMessage,
+} from '../repository/validationRules'
 import type {
   DateDisableConstraints,
   DateTimePickerProps,
@@ -82,6 +87,8 @@ export function useDateTimePickerController({
   error: errorProp = false,
   helperText,
   onValidationChange,
+  fillRequired = FillRequired.None,
+  validationRules,
 }: DateTimePickerProps) {
   const availablePrecisions = useMemo(
     () => normalizeDateTimePrecisions(dateTimePrecisions ?? dateTimePrecision),
@@ -145,7 +152,18 @@ export function useDateTimePickerController({
 
   const text = resolveLocaleText(locale, localeTextProp)
   const formattedValue = formatDateTime(value, format, ampm, locale, timezone)
-  const invalidFormatMessage = text.invalidFormat.replace('{format}', format)
+  const dateRequired = isPickerDateRequired(fillRequired)
+  const invalidFormatMessage = resolveValidationMessage(
+    'date-format',
+    locale,
+    validationRules,
+    { format },
+  )
+  const dateRequiredMessage = resolveValidationMessage(
+    'date-required',
+    locale,
+    validationRules,
+  )
   const hasError = errorProp || fieldError
 
   const dateConstraints = useMemo<DateDisableConstraints>(
@@ -195,18 +213,20 @@ export function useDateTimePickerController({
   )
 
   const reportValidation = useCallback(
-    (valid: boolean, reason?: 'invalidFormat') => {
+    (valid: boolean, reason?: 'date-required' | 'date-format') => {
       if (valid) {
         onValidationChange?.({ valid: true })
         return
       }
+      const message =
+        reason === 'date-required' ? dateRequiredMessage : invalidFormatMessage
       onValidationChange?.({
         valid: false,
         reason,
-        message: invalidFormatMessage,
+        message,
       })
     },
-    [invalidFormatMessage, onValidationChange],
+    [dateRequiredMessage, invalidFormatMessage, onValidationChange],
   )
 
   const normalizeValue = useCallback(
@@ -430,11 +450,17 @@ export function useDateTimePickerController({
       event.stopPropagation()
       setDraft(null)
       setInputText('')
-      setFieldError(false)
       emitChange(null, 'view')
       onAccept?.(null, { source: 'view' })
+      if (dateRequired) {
+        setFieldError(true)
+        reportValidation(false, 'date-required')
+        return
+      }
+      setFieldError(false)
+      reportValidation(true)
     },
-    [emitChange, onAccept],
+    [dateRequired, emitChange, onAccept, reportValidation],
   )
 
   const commitField = useCallback(
@@ -442,6 +468,11 @@ export function useDateTimePickerController({
       if (readOnly || disabled) return
       const parsed = parseDateTime(fieldText, format, ampm, timezone)
       if (fieldText.trim() === '') {
+        if (dateRequired) {
+          setFieldError(true)
+          reportValidation(false, 'date-required')
+          return
+        }
         setFieldError(false)
         setDraft(null)
         emitChange(null, 'field')
@@ -452,7 +483,7 @@ export function useDateTimePickerController({
       }
       if (!parsed) {
         setFieldError(true)
-        reportValidation(false, 'invalidFormat')
+        reportValidation(false, 'date-format')
         return
       }
       const normalized = applyValidValue(parsed)
@@ -464,6 +495,7 @@ export function useDateTimePickerController({
     [
       ampm,
       applyValidValue,
+      dateRequired,
       disabled,
       emitChange,
       format,

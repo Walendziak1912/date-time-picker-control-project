@@ -4,6 +4,7 @@ export type {
   DateTimeRangeValue,
   DateTimeRangeChangeContext,
   DateTimeRangeValidationResult,
+  DateTimeRangeValidationReason,
   DateTimeRangeLimits,
   DateTimeRangePresetKey,
   DateTimeRangePresetOption,
@@ -14,6 +15,16 @@ export type {
   SupportedLocale,
 } from './types'
 export { DateTimePickerPrecision } from '../DateTimePicker/types/precision.types'
+export {
+  FillRequired,
+  getDefaultValidationRules,
+  resolveValidationMessage,
+} from '../DateTimePicker/repository/validationRules'
+export type {
+  ValidationCode,
+  ValidationRules,
+  DateTimeRangeValidationCode,
+} from '../DateTimePicker/types/validation.types'
 export {
   addCalendarDays,
   addCalendarMonths,

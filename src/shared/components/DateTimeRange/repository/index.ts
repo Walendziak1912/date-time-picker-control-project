@@ -14,7 +14,6 @@ export {
 } from './rangeUtils'
 export {
   fieldLabel,
-  buildFormatValidationMessage,
   buildRangeValidationResult,
   resolveRangeFieldErrors,
   VALID_FIELD,

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { toast } from "react-toastify";
-import { DateTimePicker, DateTimePickerPrecision, type DateTimePickerPrecisionValue } from "../../../components/DateTimePicker";
+import { DateTimePicker, DateTimePickerPrecision, FillRequired, type DateTimePickerPrecisionValue } from "../../../components/DateTimePicker";
 
 const onValidationError = (result: { valid: boolean; message?: string }) => {
     if (!result.valid) {
@@ -198,6 +198,25 @@ export const ExampleDateTimePicker: React.FC = () => {
                     />
                     <p className="selected-value">
                         Wartość: <code>{datetime?.toISOString()}</code>
+                    </p>
+                </div>
+
+                <div>
+                    <h4>Data wymagana (fillRequired=All) – błąd w toaście</h4>
+                    <DateTimePicker
+                        dateTimePrecisions={DateTimePickerPrecision.Date}
+                        value={datetime}
+                        onChange={setDatetime}
+                        onValidationChange={onValidationError}
+                        showBorderFieldWhenError
+                        fillRequired={FillRequired.All}
+                        validationRules={{
+                            "date-required": "Proszę wybrać datę",
+                            "date-format": "Wpisz datę w formacie dd.MM.yyyy",
+                        }}
+                    />
+                    <p className="selected-value">
+                        Wartość: <code>{datetime?.toISOString() ?? "null"}</code>
                     </p>
                 </div>
             </section>

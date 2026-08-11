@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
 import type { SupportedLocale } from "./locale.types";
+import type { FillRequired, ValidationRules } from "./validation.types";
 import type { DateTimePickerLocaleText } from "./localeText.types";
 import type {
   DateTimePickerPrecisionValue,
@@ -36,7 +37,7 @@ export type DateTimeChangeContext = {
   precision?: DateTimePickerPrecisionValue | null;
 };
 
-export type DateTimeValidationReason = "invalidFormat";
+export type DateTimeValidationReason = "date-required" | "date-format";
 
 export type DateTimeValidationResult = {
   valid: boolean;
@@ -133,4 +134,8 @@ export type DateTimePickerProps = {
   showBorderFieldWhenError?: boolean;
   //raport walidacji pola tekstowego np. Toast u rodzica
   onValidationChange?: (result: DateTimeValidationResult) => void;
+  //wymagalność uzupełnienia daty. Domyślnie None (data opcjonalna)
+  fillRequired?: FillRequired;
+  //nadpisanie komunikatów walidacji (klucz = kod błędu). Brak klucza = domyślny komunikat
+  validationRules?: ValidationRules;
 };

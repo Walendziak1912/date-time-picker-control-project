@@ -4,6 +4,7 @@ import type {
   DateTimeChangeContext,
   DateTimeValidationResult,
 } from "../../DateTimePicker";
+import { FillRequired } from "../../DateTimePicker/repository/validationRules";
 import {
   endOfDayTz,
   nowInTimezone,
@@ -70,6 +71,8 @@ export function useDateTimeRangeController(props: DateTimeRangeProps) {
     flexibility: flexibilityProp,
     defaultFlexibility = 0,
     useEndOfDayAsRangeEnd = true,
+    fillRequired = FillRequired.None,
+    validationRules,
   } = props;
 
   const availablePrecisions = useMemo(
@@ -148,18 +151,26 @@ export function useDateTimeRangeController(props: DateTimeRangeProps) {
       buildRangeValidationResult({
         start: startFieldValidation,
         end: endFieldValidation,
+        startValue: value.start,
+        endValue: value.end,
         rangeOrderValid,
         startFieldName,
         endFieldName,
-        messages: rangeText,
+        fillRequired,
+        locale,
+        validationRules,
       }),
     [
-      endFieldValidation,
       endFieldName,
+      endFieldValidation,
+      fillRequired,
+      locale,
       rangeOrderValid,
-      rangeText,
       startFieldName,
       startFieldValidation,
+      validationRules,
+      value.end,
+      value.start,
     ],
   );
 

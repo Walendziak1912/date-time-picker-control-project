@@ -1,6 +1,10 @@
 import type { ReactNode } from "react";
 
 import type {
+  FillRequired,
+  ValidationRules,
+} from "../../DateTimePicker/types/validation.types";
+import type {
   DateTimeChangeContext,
   DateTimePickerLocaleText,
   DateTimePickerMode,
@@ -50,7 +54,15 @@ export type DateTimeRangePresetOption = {
   label: string;
 };
 
-export type DateTimeRangeValidationReason = "invalidFormat" | "invalidRange";
+export type DateTimeRangeValidationReason =
+  | "both-dates-required"
+  | "start-date-required"
+  | "end-date-required"
+  | "start-date-format"
+  | "end-date-format"
+  | "start-date-after-end-date"
+  | "end-date-before-start-date"
+  | "invalid-date-range";
 
 export type DateTimeRangeValidationResult = {
   valid: boolean;
@@ -180,6 +192,10 @@ export type DateTimeRangeProps = SharedPickerProps & {
   rangeLocaleText?: DateTimeRangeLocaleText;
   //false zachowanie z bieżącą godziną w polu końcowym domyślnie jest true, czyli zachowanie z końcem dnia w polu końcowym
   useEndOfDayAsRangeEnd?: boolean;
+  //wymagalność uzupełnienia dat w zakresie. Domyślnie None
+  fillRequired?: FillRequired;
+  //nadpisanie komunikatów walidacji (klucz = kod błędu). Brak klucza = domyślny komunikat
+  validationRules?: ValidationRules;
 };
 
 export type DateTimeRangeConstraintMode = DateTimePickerMode;
