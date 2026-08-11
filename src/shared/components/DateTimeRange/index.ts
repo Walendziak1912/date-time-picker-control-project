@@ -5,6 +5,7 @@ export type {
   DateTimeRangeChangeContext,
   DateTimeRangeValidationResult,
   DateTimeRangeValidationReason,
+  DateTimeRangeHandle,
   DateTimeRangeLimits,
   DateTimeRangePresetKey,
   DateTimeRangePresetOption,

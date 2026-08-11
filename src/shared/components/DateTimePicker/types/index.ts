@@ -8,6 +8,7 @@ export type {
   DateTimeValidationReason,
   DateTimeValidationResult,
   DateTimePickerProps,
+  DateTimePickerHandle,
 } from './DateTimePicker.types'
 export type {
   DateTimePickerPrecisionValue,

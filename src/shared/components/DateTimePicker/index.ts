@@ -18,6 +18,7 @@ export type {
   ValidationRules,
   DateTimePickerValidationCode,
   DateTimeRangeValidationCode,
+  DateTimePickerHandle,
 } from './types'
 export { FillRequired } from './types/validation.types'
 export {

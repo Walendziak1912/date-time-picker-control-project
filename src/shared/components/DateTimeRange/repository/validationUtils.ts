@@ -31,14 +31,8 @@ function buildFormatValidationMessage(options: {
   locale?: string;
   validationRules?: ValidationRules;
 }): { message: string; reason: DateTimeRangeValidationCode } {
-  const {
-    start,
-    end,
-    startFieldName,
-    endFieldName,
-    locale,
-    validationRules,
-  } = options;
+  const { start, end, startFieldName, endFieldName, locale, validationRules } =
+    options;
   const vars = fieldVars(startFieldName, endFieldName);
   const startInvalid = !start.valid;
   const endInvalid = !end.valid;
@@ -106,11 +100,7 @@ function buildRequiredValidationResult(options: {
     return null;
   }
 
-  if (
-    fillRequired === FillRequired.All &&
-    startEmpty &&
-    endEmpty
-  ) {
+  if (fillRequired === FillRequired.All && startEmpty && endEmpty) {
     return {
       valid: false,
       reason: "both-dates-required",
@@ -211,6 +201,7 @@ export function buildRangeValidationResult(options: {
   fillRequired?: FillRequired;
   locale?: string;
   validationRules?: ValidationRules;
+  checkRequiredAndRange?: boolean;
 }): DateTimeRangeValidationResult {
   const {
     start,
@@ -223,6 +214,7 @@ export function buildRangeValidationResult(options: {
     fillRequired = FillRequired.None,
     locale,
     validationRules,
+    checkRequiredAndRange = true,
   } = options;
 
   const vars = fieldVars(startFieldName, endFieldName);
@@ -272,47 +264,54 @@ export function buildRangeValidationResult(options: {
     };
   }
 
-  const requiredResult = buildRequiredValidationResult({
-    startEmpty,
-    endEmpty,
-    fillRequired,
-    startFieldName,
-    endFieldName,
-    locale,
-    validationRules,
-  });
-  if (requiredResult) {
-    return requiredResult;
-  }
+  if (checkRequiredAndRange) {
+    const requiredResult = buildRequiredValidationResult({
+      startEmpty,
+      endEmpty,
+      fillRequired,
+      startFieldName,
+      endFieldName,
+      locale,
+      validationRules,
+    });
+    if (requiredResult) {
+      return requiredResult;
+    }
 
-  if (!rangeOrderValid && startValue != null && endValue != null) {
-    const reason: DateTimeRangeValidationCode = "end-date-before-start-date";
+    if (!rangeOrderValid && startValue != null && endValue != null) {
+      const reason: DateTimeRangeValidationCode = "end-date-before-start-date";
 
-    return {
-      valid: false,
-      reason,
-      message: resolveValidationMessage(reason, locale, validationRules, vars),
-      fields: {
-        start: {
-          valid: false,
-          message: resolveValidationMessage(
-            "start-date-after-end-date",
-            locale,
-            validationRules,
-            vars,
-          ),
+      return {
+        valid: false,
+        reason,
+        message: resolveValidationMessage(
+          reason,
+          locale,
+          validationRules,
+          vars,
+        ),
+        fields: {
+          start: {
+            valid: false,
+            message: resolveValidationMessage(
+              "start-date-after-end-date",
+              locale,
+              validationRules,
+              vars,
+            ),
+          },
+          end: {
+            valid: false,
+            message: resolveValidationMessage(
+              "end-date-before-start-date",
+              locale,
+              validationRules,
+              vars,
+            ),
+          },
         },
-        end: {
-          valid: false,
-          message: resolveValidationMessage(
-            "end-date-before-start-date",
-            locale,
-            validationRules,
-            vars,
-          ),
-        },
-      },
-    };
+      };
+    }
   }
 
   return { valid: true, fields: { start, end } };

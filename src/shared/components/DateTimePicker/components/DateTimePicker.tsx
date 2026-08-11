@@ -1,5 +1,5 @@
 import { Button } from "primereact/button";
-import { useRef } from "react";
+import { forwardRef, useImperativeHandle, useRef } from "react";
 import { AnalogClock } from "./AnalogClock";
 import { Calendar } from "./Calendar";
 import { CalendarIcon } from "./CalendarIcon";
@@ -10,10 +10,17 @@ import {
   usePopoverDismiss,
   usePopoverPlacement,
 } from "../hooks";
-import type { DateTimePickerProps, DateTimePickerView } from "../types";
+import type {
+  DateTimePickerHandle,
+  DateTimePickerProps,
+  DateTimePickerView,
+} from "../types";
 import "./DateTimePicker.css";
 
-export function DateTimePicker(props: DateTimePickerProps) {
+export const DateTimePicker = forwardRef<
+  DateTimePickerHandle,
+  DateTimePickerProps
+>(function DateTimePicker(props, ref) {
   const {
     label,
     name,
@@ -83,7 +90,10 @@ export function DateTimePicker(props: DateTimePickerProps) {
     activePrecision,
     showPrecisionSwitcher,
     handlePrecisionChange,
+    validate,
   } = controller;
+
+  useImperativeHandle(ref, () => ({ validate }), [validate]);
 
   const popoverRef = useRef<HTMLDivElement>(null);
 
@@ -272,4 +282,4 @@ export function DateTimePicker(props: DateTimePickerProps) {
       )}
     </div>
   );
-}
+});

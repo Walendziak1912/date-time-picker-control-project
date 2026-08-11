@@ -9,6 +9,7 @@ export type {
   DateTimeRangeValidationReason,
   DateTimeRangeValidationResult,
   DateTimeRangeFieldValidation,
+  DateTimeRangeHandle,
   DateTimeRangeLimits,
   DateTimeRangePresetKey,
   DateTimeRangePresetOption,

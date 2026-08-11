@@ -49,6 +49,10 @@ export type DateTimeValidationResult = {
   message?: string;
 };
 
+export type DateTimePickerHandle = {
+  validate: () => DateTimeValidationResult;
+};
+
 export type DateTimePickerProps = {
   value?: Date | null;
   defaultValue?: Date | null;

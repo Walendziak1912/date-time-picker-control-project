@@ -29,6 +29,7 @@ import type {
   DateDisableConstraints,
   DateTimePickerProps,
   DateTimePickerView,
+  DateTimeValidationResult,
   TimeDisableConstraints,
 } from '../types'
 import { resolveDateTimePickerPrecision } from '../types/precision.types'
@@ -120,6 +121,7 @@ export function useDateTimePickerController({
   const rootRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const valueOnOpenRef = useRef<Date | null>(null)
+  const lastValidationRef = useRef<DateTimeValidationResult>({ valid: true })
   const labelId = useId()
 
   const value = isControlled ? (valueProp ?? null) : internalValue
@@ -211,17 +213,18 @@ export function useDateTimePickerController({
 
   const reportValidation = useCallback(
     (valid: boolean, reason?: 'date-required' | 'date-format') => {
-      if (valid) {
-        onValidationChange?.({ valid: true })
-        return
-      }
-      const message =
-        reason === 'date-required' ? dateRequiredMessage : invalidFormatMessage
-      onValidationChange?.({
-        valid: false,
-        reason,
-        message,
-      })
+      const result: DateTimeValidationResult = valid
+        ? { valid: true }
+        : {
+            valid: false,
+            reason,
+            message:
+              reason === 'date-required'
+                ? dateRequiredMessage
+                : invalidFormatMessage,
+          }
+      lastValidationRef.current = result
+      onValidationChange?.(result)
     },
     [dateRequiredMessage, invalidFormatMessage, onValidationChange],
   )
@@ -657,6 +660,11 @@ export function useDateTimePickerController({
   const inputValue = focused || fieldError ? inputText : formattedValue
   const inputSize = Math.max(inputValue.length, format.length, 1)
 
+  const validate = useCallback((): DateTimeValidationResult => {
+    commitField(focused || fieldError ? inputText : formattedValue)
+    return lastValidationRef.current
+  }, [commitField, fieldError, focused, formattedValue, inputText])
+
   return {
     rootRef,
     inputRef,
@@ -709,6 +717,7 @@ export function useDateTimePickerController({
     activePrecision,
     showPrecisionSwitcher,
     handlePrecisionChange,
+    validate,
   }
 }
 

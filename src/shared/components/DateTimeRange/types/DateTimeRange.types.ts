@@ -69,6 +69,10 @@ export type DateTimeRangeFieldValidation = {
   end?: DateTimeValidationResult;
 };
 
+export type DateTimeRangeHandle = {
+  validate: () => DateTimeRangeValidationResult;
+};
+
 export type DateTimeRangeLimits = {
   maxRangeDays?: number;
   maxRangeHours?: number;

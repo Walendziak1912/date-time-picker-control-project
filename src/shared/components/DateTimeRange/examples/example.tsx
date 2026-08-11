@@ -1,12 +1,44 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { Button } from "primereact/button";
+import { Dropdown } from "primereact/dropdown";
+import { InputText } from "primereact/inputtext";
 import { toast } from "react-toastify";
 import {
   DateTimePickerPrecision,
   FillRequired,
   serializeBackendUtc,
 } from "../../../components/DateTimePicker";
-import { DateTimeRange } from "../../../components/DateTimeRange";
+import {
+  DateTimeRange,
+  type DateTimeRangeHandle,
+} from "../../../components/DateTimeRange";
 import type { DateTimeRangeValue } from "../../../components/DateTimeRange/types";
+
+const reportTypeOptions = [
+  { label: "Sprzedaż", value: "sales" },
+  { label: "Magazyn", value: "warehouse" },
+  { label: "Finanse", value: "finance" },
+];
+
+type ReportFormState = {
+  name: string;
+  type: string | null;
+  rangeAll: DateTimeRangeValue;
+  rangeStartOnly: DateTimeRangeValue;
+};
+
+const createInitialReportFormState = (): ReportFormState => ({
+  name: "",
+  type: null,
+  rangeAll: {
+    start: null,
+    end: null,
+  },
+  rangeStartOnly: {
+    start: null,
+    end: null,
+  },
+});
 
 const onValidationError = (result: { valid: boolean; message?: string }) => {
   if (!result.valid) {
@@ -31,10 +63,33 @@ export const ExampleDateTimeRange: React.FC = () => {
     start: new Date(emissionDate.getTime() - 24 * 60 * 60 * 1000),
     end: emissionDate,
   });
-  const [requiredRange, setRequiredRange] = useState<DateTimeRangeValue>({
-    start: null,
-    end: null,
-  });
+  const [reportForm, setReportForm] = useState<ReportFormState>(
+    createInitialReportFormState,
+  );
+  const [reportFormKey, setReportFormKey] = useState(0);
+  const reportRangeAllRef = useRef<DateTimeRangeHandle>(null);
+  const reportRangeStartRef = useRef<DateTimeRangeHandle>(null);
+
+  const handleReportFormSave = () => {
+    const rangeAllValidation =
+      reportRangeAllRef.current?.validate() ?? { valid: true };
+    const rangeStartValidation =
+      reportRangeStartRef.current?.validate() ?? { valid: true };
+
+    if (!rangeAllValidation.valid || !rangeStartValidation.valid) {
+      return;
+    }
+
+    toast.success(
+      `Zapisano raport: "${reportForm.name || "(bez nazwy)"}", typ: ${reportForm.type ?? "—"}, zakres: ${reportForm.rangeAll.start?.toISOString() ?? "—"} – ${reportForm.rangeAll.end?.toISOString() ?? "—"}`,
+    );
+  };
+
+  const handleReportFormCancel = () => {
+    setReportForm(createInitialReportFormState());
+    setReportFormKey((current) => current + 1);
+    toast.info("Formularz anulowany — przywrócono wartości początkowe");
+  };
 
   return (
     <>
@@ -42,6 +97,114 @@ export const ExampleDateTimeRange: React.FC = () => {
         <header>
           <h1>DateTimeRange</h1>
         </header>
+        <div>
+          <h4>
+            Formularz PrimeReact zakres dat, input, dropdown, Zapisz / Anuluj
+          </h4>
+          <form
+            className="p-fluid example-prime-form"
+            onSubmit={(event) => {
+              event.preventDefault();
+              handleReportFormSave();
+            }}
+          >
+            <div className="field">
+              <label htmlFor="report-name">Nazwa raportu</label>
+              <InputText
+                id="report-name"
+                value={reportForm.name}
+                onChange={(event) =>
+                  setReportForm((current) => ({
+                    ...current,
+                    name: event.target.value,
+                  }))
+                }
+                placeholder="np. Raport miesięczny"
+              />
+            </div>
+            <div className="field">
+              <label htmlFor="report-type">Typ raportu</label>
+              <Dropdown
+                id="report-type"
+                value={reportForm.type}
+                options={reportTypeOptions}
+                onChange={(event) =>
+                  setReportForm((current) => ({
+                    ...current,
+                    type: event.value,
+                  }))
+                }
+                placeholder="Wybierz typ"
+              />
+            </div>
+            <div className="field">
+              <label>Zakres dat (fillRequired=All)</label>
+              <DateTimeRange
+                key={`range-all-${reportFormKey}`}
+                ref={reportRangeAllRef}
+                dateTimePrecisions={DateTimePickerPrecision.Date}
+                value={reportForm.rangeAll}
+                onChange={(range) =>
+                  setReportForm((current) => ({ ...current, rangeAll: range }))
+                }
+                onValidationChange={onValidationError}
+                showBorderFieldWhenError
+                fillRequired={FillRequired.All}
+                validationRules={{
+                  "both-dates-required":
+                    "Wybierz datę początkową i końcową dla raportu",
+                  "start-date-required": "Podaj datę początkową raportu",
+                  "end-date-required": "Podaj datę końcową raportu",
+                }}
+              />
+            </div>
+            <div className="field">
+              <label>Zakres dat z wymaganą datą początkową (fillRequired=StartDate)</label>
+              <DateTimeRange
+                key={`range-start-${reportFormKey}`}
+                ref={reportRangeStartRef}
+                dateTimePrecisions={DateTimePickerPrecision.Date}
+                value={reportForm.rangeStartOnly}
+                onChange={(range) =>
+                  setReportForm((current) => ({
+                    ...current,
+                    rangeStartOnly: range,
+                  }))
+                }
+                onValidationChange={onValidationError}
+                showBorderFieldWhenError
+                fillRequired={FillRequired.StartDate}
+              />
+            </div>
+            <div className="example-prime-form-actions">
+              <Button type="submit" label="Zapisz" />
+              <Button
+                type="button"
+                label="Anuluj"
+                severity="secondary"
+                outlined
+                onClick={handleReportFormCancel}
+              />
+            </div>
+          </form>
+          <p className="selected-value">
+            Stan formularza:{" "}
+            <code>
+              {JSON.stringify({
+                name: reportForm.name,
+                type: reportForm.type,
+                rangeAll: {
+                  start: reportForm.rangeAll.start?.toISOString() ?? null,
+                  end: reportForm.rangeAll.end?.toISOString() ?? null,
+                },
+                rangeStartOnly: {
+                  start: reportForm.rangeStartOnly.start?.toISOString() ?? null,
+                  end: reportForm.rangeStartOnly.end?.toISOString() ?? null,
+                },
+              })}
+            </code>
+          </p>
+        </div>
         <div>
           <h4>
             Przełącznik precyzji 2 tryby (data oraz data + czas milisekundy)
@@ -246,45 +409,6 @@ export const ExampleDateTimeRange: React.FC = () => {
               {emissionRange.end?.toISOString()}
             </code>
           </p>
-        </div>
-        <div>
-          <h4>Oba pola wymagane (fillRequired=All) błąd w toaście</h4>
-          <DateTimeRange
-            dateTimePrecisions={DateTimePickerPrecision.Date}
-            value={requiredRange}
-            onChange={setRequiredRange}
-            onValidationChange={onValidationError}
-            fillRequired={FillRequired.All}
-            validationRules={{
-              "both-dates-required":
-                "Wybierz datę początkową i końcową dla wydarzenia",
-              "start-date-required": "Podaj datę początkową wydarzenia",
-              "end-date-required": "Podaj datę końcową wydarzenia",
-            }}
-            showBorderFieldWhenError
-          />
-          <p>
-            Wartość:{" "}
-            <code>
-              {requiredRange.start?.toISOString() ?? "null"} -{" "}
-              {requiredRange.end?.toISOString() ?? "null"}
-            </code>
-          </p>
-        </div>
-        <div>
-          <h4>
-            Tylko data początkowa wymagana (fillRequired=StartDate) błąd w
-            toaście
-          </h4>
-          <DateTimeRange
-            dateTimePrecisions={DateTimePickerPrecision.Date}
-            value={requiredRange}
-            onChange={setRequiredRange}
-            onValidationChange={onValidationError}
-            showBorderFieldWhenError
-            fillRequired={FillRequired.StartDate}
-            showTextUnderFieldWhenError={true}
-          />
         </div>
       </section>
     </>
