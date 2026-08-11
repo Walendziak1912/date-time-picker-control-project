@@ -1,7 +1,10 @@
 import type { ReactNode } from "react";
 
-import type { SupportedLocale } from "./locale.types";
-import type { FillRequired, ValidationRules } from "./validation.types";
+import type {
+  DateTimePickerValidationCode,
+  FillRequired,
+  ValidationRules,
+} from "./validation.types";
 import type { DateTimePickerLocaleText } from "./localeText.types";
 import type {
   DateTimePickerPrecisionValue,
@@ -37,7 +40,7 @@ export type DateTimeChangeContext = {
   precision?: DateTimePickerPrecisionValue | null;
 };
 
-export type DateTimeValidationReason = "date-required" | "date-format";
+export type DateTimeValidationReason = DateTimePickerValidationCode;
 
 export type DateTimeValidationResult = {
   valid: boolean;

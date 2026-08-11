@@ -12,10 +12,6 @@ export type DateTimeRangeLocaleText = {
   presetPlaceholder?: string;
   flexDatesPlaceholder?: string;
   flexDatesLabel?: string;
-  invalidFormatBoth?: string;
-  invalidFormatStart?: string;
-  invalidFormatEnd?: string;
-  invalidRange?: string;
   presets?: Partial<Record<DateTimeRangePresetKey, string>>;
   flexDates?: Partial<Record<DateTimeRangeFlexibility, string>>;
 };
@@ -26,10 +22,6 @@ export type ResolvedRangeLocaleText = {
   presetPlaceholder: string;
   flexDatesPlaceholder: string;
   flexDatesLabel: string;
-  invalidFormatBoth: string;
-  invalidFormatStart: string;
-  invalidFormatEnd: string;
-  invalidRange: string;
   presetOptions: DateTimeRangePresetOption[];
   flexDatesOptions: DateTimeRangeFlexOption[];
 };

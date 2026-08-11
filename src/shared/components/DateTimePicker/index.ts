@@ -19,8 +19,8 @@ export type {
   DateTimePickerValidationCode,
   DateTimeRangeValidationCode,
 } from './types'
+export { FillRequired } from './types/validation.types'
 export {
-  FillRequired,
   getDefaultValidationRules,
   resolveValidationMessage,
 } from './repository'

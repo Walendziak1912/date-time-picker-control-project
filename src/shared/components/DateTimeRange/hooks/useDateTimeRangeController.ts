@@ -4,7 +4,7 @@ import type {
   DateTimeChangeContext,
   DateTimeValidationResult,
 } from "../../DateTimePicker";
-import { FillRequired } from "../../DateTimePicker/repository/validationRules";
+import { FillRequired } from "../../DateTimePicker/types/validation.types";
 import {
   endOfDayTz,
   nowInTimezone,
@@ -20,9 +20,9 @@ import {
   buildEndConstraints,
   buildRangeValidationResult,
   buildStartConstraints,
-  fieldLabel,
   isRangeOrderValid,
   normalizeRangeValue,
+  resolveFieldLabel,
   resolveRangeLocaleText,
   VALID_FIELD,
 } from "../repository";
@@ -122,8 +122,8 @@ export function useDateTimeRangeController(props: DateTimeRangeProps) {
 
   const startLabel = startLabelProp;
   const endLabel = endLabelProp;
-  const startFieldName = fieldLabel(startLabelProp, rangeText.startLabel);
-  const endFieldName = fieldLabel(endLabelProp, rangeText.endLabel);
+  const startFieldName = resolveFieldLabel(startLabelProp, rangeText.startLabel);
+  const endFieldName = resolveFieldLabel(endLabelProp, rangeText.endLabel);
 
   const rangeLimits = useMemo<DateTimeRangeLimits>(
     () => ({

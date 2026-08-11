@@ -1,23 +1,17 @@
 import type { DateTimeValidationResult } from "../../DateTimePicker";
 import {
-  FillRequired,
   isEndDateRequired,
   isStartDateRequired,
   resolveValidationMessage,
 } from "../../DateTimePicker/repository/validationRules";
-import type { ValidationRules } from "../../DateTimePicker/types/validation.types";
-import type {
-  DateTimeRangeValidationReason,
-  DateTimeRangeValidationResult,
-} from "../types";
+import {
+  FillRequired,
+  type DateTimeRangeValidationCode,
+  type ValidationRules,
+} from "../../DateTimePicker/types/validation.types";
+import type { DateTimeRangeValidationResult } from "../types";
 
 export const VALID_FIELD: DateTimeValidationResult = { valid: true };
-
-export function fieldLabel(label: unknown, fallback: string): string {
-  return typeof label === "string" && label.trim().length > 0
-    ? label
-    : fallback;
-}
 
 function mapFieldFormatCode(
   field: "start" | "end",
@@ -36,7 +30,7 @@ function buildFormatValidationMessage(options: {
   endFieldName: string;
   locale?: string;
   validationRules?: ValidationRules;
-}): { message: string; reason: DateTimeRangeValidationReason } {
+}): { message: string; reason: DateTimeRangeValidationCode } {
   const {
     start,
     end,
@@ -292,7 +286,7 @@ export function buildRangeValidationResult(options: {
   }
 
   if (!rangeOrderValid && startValue != null && endValue != null) {
-    const reason: DateTimeRangeValidationReason = "end-date-before-start-date";
+    const reason: DateTimeRangeValidationCode = "end-date-before-start-date";
 
     return {
       valid: false,
@@ -332,10 +326,7 @@ export function resolveRangeFieldErrors(options: {
   const startFieldInvalid = validationResult.fields?.start?.valid === false;
   const endFieldInvalid = validationResult.fields?.end?.valid === false;
   const reason = validationResult.reason;
-  const rangeOrderInvalid =
-    reason === "end-date-before-start-date" ||
-    reason === "start-date-after-end-date" ||
-    reason === "invalid-date-range";
+  const rangeOrderInvalid = reason === "end-date-before-start-date";
   const bothRequiredInvalid = reason === "both-dates-required";
   const startRequiredInvalid = reason === "start-date-required";
   const endRequiredInvalid = reason === "end-date-required";

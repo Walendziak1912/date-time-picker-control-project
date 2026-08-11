@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import type {
   FillRequired,
   ValidationRules,
+  DateTimeRangeValidationCode,
 } from "../../DateTimePicker/types/validation.types";
 import type {
   DateTimeChangeContext,
@@ -54,15 +55,7 @@ export type DateTimeRangePresetOption = {
   label: string;
 };
 
-export type DateTimeRangeValidationReason =
-  | "both-dates-required"
-  | "start-date-required"
-  | "end-date-required"
-  | "start-date-format"
-  | "end-date-format"
-  | "start-date-after-end-date"
-  | "end-date-before-start-date"
-  | "invalid-date-range";
+export type DateTimeRangeValidationReason = DateTimeRangeValidationCode;
 
 export type DateTimeRangeValidationResult = {
   valid: boolean;

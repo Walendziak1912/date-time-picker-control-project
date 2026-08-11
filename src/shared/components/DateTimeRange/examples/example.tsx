@@ -283,6 +283,7 @@ export const ExampleDateTimeRange: React.FC = () => {
             onValidationChange={onValidationError}
             showBorderFieldWhenError
             fillRequired={FillRequired.StartDate}
+            showTextUnderFieldWhenError={true}
           />
         </div>
       </section>

@@ -15,8 +15,8 @@ export type {
   SupportedLocale,
 } from './types'
 export { DateTimePickerPrecision } from '../DateTimePicker/types/precision.types'
+export { FillRequired } from '../DateTimePicker/types/validation.types'
 export {
-  FillRequired,
   getDefaultValidationRules,
   resolveValidationMessage,
 } from '../DateTimePicker/repository/validationRules'

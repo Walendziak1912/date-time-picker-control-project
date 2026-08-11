@@ -6,8 +6,6 @@ import {
   type ValidationRules,
 } from "../types/validation.types";
 
-export { FillRequired };
-
 function defaultMessages(locale: SupportedLocale): Record<ValidationCode, string> {
   const pl = locale === "pl-PL";
 
@@ -29,14 +27,14 @@ function defaultMessages(locale: SupportedLocale): Record<ValidationCode, string
       ? "Data początkowa nie może być późniejsza niż data końcowa"
       : "Start date cannot be later than end date",
     "end-date-before-start-date": pl
-      ? "Data końcowa nie może być wcześniejsza niż data początkowa"
-      : "End date cannot be earlier than start date",
+      ? "Data w polu {endField} nie może być wcześniejsza niż w polu {startField}"
+      : "The date in {endField} cannot be earlier than in {startField}",
     "start-date-format": pl
-      ? "Niepoprawny format daty początkowej"
-      : "Invalid start date format",
+      ? "Niepoprawny format daty w polu {startField}"
+      : "Invalid date format in field {startField}",
     "end-date-format": pl
-      ? "Niepoprawny format daty końcowej"
-      : "Invalid end date format",
+      ? "Niepoprawny format daty w polu {endField}"
+      : "Invalid date format in field {endField}",
     "invalid-date-range": pl ? "Niepoprawny zakres dat" : "Invalid date range",
   };
 }
@@ -68,10 +66,6 @@ export function resolveValidationMessage(
   }
 
   return message;
-}
-
-export function isPickerDateRequired(fillRequired: FillRequired): boolean {
-  return fillRequired === FillRequired.All;
 }
 
 export function isStartDateRequired(fillRequired: FillRequired): boolean {

@@ -13,15 +13,11 @@ export {
   buildEndConstraints,
 } from './rangeUtils'
 export {
-  fieldLabel,
   buildRangeValidationResult,
   resolveRangeFieldErrors,
   VALID_FIELD,
 } from './validationUtils'
-export {
-  resolveRangeLocaleText,
-  formatRangeMessage,
-} from './rangeLocaleText'
+export { resolveFieldLabel, resolveRangeLocaleText } from './rangeLocaleText'
 export {
   DEFAULT_PRESET_OPTIONS,
   buildDefaultPresetOptions,

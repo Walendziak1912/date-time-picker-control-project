@@ -23,11 +23,8 @@ import {
   withoutMillisecondsTz,
   nowInTimezone,
 } from '../repository'
-import {
-  FillRequired,
-  isPickerDateRequired,
-  resolveValidationMessage,
-} from '../repository/validationRules'
+import { resolveValidationMessage } from '../repository/validationRules'
+import { FillRequired } from '../types/validation.types'
 import type {
   DateDisableConstraints,
   DateTimePickerProps,
@@ -152,7 +149,7 @@ export function useDateTimePickerController({
 
   const text = resolveLocaleText(locale, localeTextProp)
   const formattedValue = formatDateTime(value, format, ampm, locale, timezone)
-  const dateRequired = isPickerDateRequired(fillRequired)
+  const dateRequired = fillRequired === FillRequired.All
   const invalidFormatMessage = resolveValidationMessage(
     'date-format',
     locale,

@@ -21,7 +21,6 @@ export type DateTimePickerLocaleText = {
   seconds?: string;
   milliseconds?: string;
   meridiem?: string;
-  invalidFormat?: string;
   precisionLabels?: Partial<Record<DateTimePickerPrecisionValue, string>>;
 };
 
@@ -44,6 +43,5 @@ export type ResolvedLocaleText = {
   seconds: string;
   milliseconds: string;
   meridiem: string;
-  invalidFormat: string;
   precisionLabels: Partial<Record<DateTimePickerPrecisionValue, string>>;
 };
