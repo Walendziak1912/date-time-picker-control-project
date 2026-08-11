@@ -6,6 +6,7 @@ import type {
   ValidationRules,
 } from "./validation.types";
 import type { DateTimePickerLocaleText } from "./localeText.types";
+import type { SupportedLocale } from "./locale.types";
 import type {
   DateTimePickerPrecisionValue,
   DateTimePrecisionsInput,
