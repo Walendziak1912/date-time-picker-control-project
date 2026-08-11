@@ -113,6 +113,8 @@ export const DateTimeRange = forwardRef<
     validationResult,
     startConstraints,
     endConstraints,
+    startReferenceDate,
+    endReferenceDate,
     applyRangeValue,
     handleStartChange,
     handleEndChange,
@@ -240,6 +242,7 @@ export const DateTimeRange = forwardRef<
           maxDate={startConstraints.maxDate}
           minDateTime={startConstraints.minDateTime}
           maxDateTime={startConstraints.maxDateTime}
+          referenceDate={startReferenceDate}
         />
 
         {separator != null && (
@@ -263,6 +266,7 @@ export const DateTimeRange = forwardRef<
           maxDate={endConstraints.maxDate}
           minDateTime={endConstraints.minDateTime}
           maxDateTime={endConstraints.maxDateTime}
+          referenceDate={endReferenceDate}
         />
 
         {showPresets && (

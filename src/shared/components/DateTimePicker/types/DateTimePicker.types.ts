@@ -56,6 +56,8 @@ export type DateTimePickerHandle = {
 export type DateTimePickerProps = {
   value?: Date | null;
   defaultValue?: Date | null;
+  //miesiąc kalendarza przy otwarciu popovera, gdy value jest puste
+  referenceDate?: Date | null;
   onChange?: (value: Date | null, context: DateTimeChangeContext) => void;
   onAccept?: (value: Date | null, context: DateTimeChangeContext) => void;
   open?: boolean;

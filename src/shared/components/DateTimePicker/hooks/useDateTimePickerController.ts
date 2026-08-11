@@ -43,6 +43,7 @@ import {
 export function useDateTimePickerController({
   value: valueProp,
   defaultValue = null,
+  referenceDate,
   onChange,
   onAccept,
   open: openProp,
@@ -114,7 +115,9 @@ export function useDateTimePickerController({
   const [internalValue, setInternalValue] = useState<Date | null>(defaultValue)
   const [internalOpen, setInternalOpen] = useState(false)
   const [draft, setDraft] = useState<Date | null>(valueProp ?? defaultValue)
-  const [month, setMonth] = useState<Date>(() => valueProp ?? defaultValue ?? new Date())
+  const [month, setMonth] = useState<Date>(
+    () => valueProp ?? defaultValue ?? referenceDate ?? new Date(),
+  )
   const [inputText, setInputText] = useState('')
   const [focused, setFocused] = useState(false)
   const [fieldError, setFieldError] = useState(false)
@@ -285,10 +288,10 @@ export function useDateTimePickerController({
     if (open && !prevOpenRef.current) {
       valueOnOpenRef.current = value ? new Date(value.getTime()) : null
       setDraft(value)
-      setMonth(value ?? new Date())
+      setMonth(value ?? referenceDate ?? new Date())
     }
     prevOpenRef.current = open
-  }, [open, value])
+  }, [open, referenceDate, value])
 
   useEffect(() => {
     if (!isControlled) return

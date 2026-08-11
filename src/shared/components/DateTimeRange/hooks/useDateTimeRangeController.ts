@@ -22,6 +22,8 @@ import {
   buildStartConstraints,
   isRangeOrderValid,
   normalizeRangeValue,
+  resolveEndReferenceDate,
+  resolveStartReferenceDate,
   resolveFieldLabel,
   resolveRangeLocaleText,
   VALID_FIELD,
@@ -343,6 +345,16 @@ export function useDateTimeRangeController(props: DateTimeRangeProps) {
     ],
   );
 
+  const endReferenceDate = useMemo(
+    () => resolveEndReferenceDate(value.start, rangeLimits, mode),
+    [mode, rangeLimits, value.start],
+  );
+
+  const startReferenceDate = useMemo(
+    () => resolveStartReferenceDate(value.end, rangeLimits, mode),
+    [mode, rangeLimits, value.end],
+  );
+
   useEffect(() => {
     if (!showValidation) {
       return;
@@ -412,6 +424,8 @@ export function useDateTimeRangeController(props: DateTimeRangeProps) {
     validationResult,
     startConstraints,
     endConstraints,
+    startReferenceDate,
+    endReferenceDate,
     applyRangeValue: commitValue,
     handleStartChange,
     handleEndChange,

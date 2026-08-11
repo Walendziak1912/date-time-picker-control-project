@@ -11,6 +11,8 @@ export {
   normalizeRangeValue,
   buildStartConstraints,
   buildEndConstraints,
+  resolveEndReferenceDate,
+  resolveStartReferenceDate,
 } from './rangeUtils'
 export {
   buildRangeValidationResult,

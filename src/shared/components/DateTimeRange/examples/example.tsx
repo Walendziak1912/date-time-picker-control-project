@@ -24,6 +24,7 @@ type ReportFormState = {
   name: string;
   type: string | null;
   rangeAll: DateTimeRangeValue;
+  rangeMaxDays: DateTimeRangeValue;
   rangeStartOnly: DateTimeRangeValue;
 };
 
@@ -31,6 +32,10 @@ const createInitialReportFormState = (): ReportFormState => ({
   name: "",
   type: null,
   rangeAll: {
+    start: null,
+    end: null,
+  },
+  rangeMaxDays: {
     start: null,
     end: null,
   },
@@ -69,14 +74,25 @@ export const ExampleDateTimeRange: React.FC = () => {
   const [reportFormKey, setReportFormKey] = useState(0);
   const reportRangeAllRef = useRef<DateTimeRangeHandle>(null);
   const reportRangeStartRef = useRef<DateTimeRangeHandle>(null);
+  const reportRangeMaxDaysRef = useRef<DateTimeRangeHandle>(null);
 
   const handleReportFormSave = () => {
-    const rangeAllValidation =
-      reportRangeAllRef.current?.validate() ?? { valid: true };
-    const rangeStartValidation =
-      reportRangeStartRef.current?.validate() ?? { valid: true };
+    const rangeAllValidation = reportRangeAllRef.current?.validate() ?? {
+      valid: true,
+    };
+    const rangeMaxDaysValidation =
+      reportRangeMaxDaysRef.current?.validate() ?? {
+        valid: true,
+      };
+    const rangeStartValidation = reportRangeStartRef.current?.validate() ?? {
+      valid: true,
+    };
 
-    if (!rangeAllValidation.valid || !rangeStartValidation.valid) {
+    if (
+      !rangeAllValidation.valid ||
+      !rangeMaxDaysValidation.valid ||
+      !rangeStartValidation.valid
+    ) {
       return;
     }
 
@@ -159,7 +175,28 @@ export const ExampleDateTimeRange: React.FC = () => {
               />
             </div>
             <div className="field">
-              <label>Zakres dat z wymaganą datą początkową (fillRequired=StartDate)</label>
+              <label>Zakres dat wymagany z ograniczeniem do 5 dni</label>
+              <DateTimeRange
+                key={`range-max-days-${reportFormKey}`}
+                dateTimePrecisions={DateTimePickerPrecision.Date}
+                ref={reportRangeMaxDaysRef}
+                value={reportForm.rangeMaxDays}
+                onChange={(range) =>
+                  setReportForm((current) => ({
+                    ...current,
+                    rangeMaxDays: range,
+                  }))
+                }
+                onValidationChange={onValidationError}
+                showBorderFieldWhenError
+                fillRequired={FillRequired.All}
+                maxRangeDays={5}
+              />
+            </div>
+            <div className="field">
+              <label>
+                Zakres dat z wymaganą datą początkową (fillRequired=StartDate)
+              </label>
               <DateTimeRange
                 key={`range-start-${reportFormKey}`}
                 ref={reportRangeStartRef}
@@ -196,6 +233,10 @@ export const ExampleDateTimeRange: React.FC = () => {
                 rangeAll: {
                   start: reportForm.rangeAll.start?.toISOString() ?? null,
                   end: reportForm.rangeAll.end?.toISOString() ?? null,
+                },
+                rangeMaxDays: {
+                  start: reportForm.rangeMaxDays.start?.toISOString() ?? null,
+                  end: reportForm.rangeMaxDays.end?.toISOString() ?? null,
                 },
                 rangeStartOnly: {
                   start: reportForm.rangeStartOnly.start?.toISOString() ?? null,
