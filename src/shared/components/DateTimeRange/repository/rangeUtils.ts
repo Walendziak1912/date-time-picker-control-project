@@ -255,6 +255,34 @@ export function buildStartConstraints(options: {
   };
 }
 
+export function resolveEndReferenceDate(
+  start: Date | null,
+  limits: DateTimeRangeLimits,
+  mode: DateTimePickerMode,
+): Date | undefined {
+  if (start == null) return undefined;
+
+  if (hasRangeLimits(limits)) {
+    return getMaxEndForStart(start, limits, mode) ?? start;
+  }
+
+  return start;
+}
+
+export function resolveStartReferenceDate(
+  end: Date | null,
+  limits: DateTimeRangeLimits,
+  mode: DateTimePickerMode,
+): Date | undefined {
+  if (end == null) return undefined;
+
+  if (hasRangeLimits(limits)) {
+    return getMinStartForEnd(end, limits, mode) ?? end;
+  }
+
+  return end;
+}
+
 export function buildEndConstraints(options: {
   mode: DateTimePickerMode;
   minDate?: Date;

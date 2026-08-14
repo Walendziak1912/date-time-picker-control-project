@@ -1,9 +1,10 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import type {
   DateTimeChangeContext,
   DateTimeValidationResult,
 } from "../../DateTimePicker";
+import { FillRequired } from "../../DateTimePicker/types/validation.types";
 import {
   endOfDayTz,
   nowInTimezone,
@@ -19,9 +20,11 @@ import {
   buildEndConstraints,
   buildRangeValidationResult,
   buildStartConstraints,
-  fieldLabel,
   isRangeOrderValid,
   normalizeRangeValue,
+  resolveEndReferenceDate,
+  resolveStartReferenceDate,
+  resolveFieldLabel,
   resolveRangeLocaleText,
   VALID_FIELD,
 } from "../repository";
@@ -29,6 +32,7 @@ import type {
   DateTimeRangeChangeContext,
   DateTimeRangeLimits,
   DateTimeRangeProps,
+  DateTimeRangeValidationResult,
   DateTimeRangeValue,
 } from "../types";
 
@@ -70,6 +74,8 @@ export function useDateTimeRangeController(props: DateTimeRangeProps) {
     flexibility: flexibilityProp,
     defaultFlexibility = 0,
     useEndOfDayAsRangeEnd = true,
+    fillRequired = FillRequired.None,
+    validationRules,
   } = props;
 
   const availablePrecisions = useMemo(
@@ -119,8 +125,8 @@ export function useDateTimeRangeController(props: DateTimeRangeProps) {
 
   const startLabel = startLabelProp;
   const endLabel = endLabelProp;
-  const startFieldName = fieldLabel(startLabelProp, rangeText.startLabel);
-  const endFieldName = fieldLabel(endLabelProp, rangeText.endLabel);
+  const startFieldName = resolveFieldLabel(startLabelProp, rangeText.startLabel);
+  const endFieldName = resolveFieldLabel(endLabelProp, rangeText.endLabel);
 
   const rangeLimits = useMemo<DateTimeRangeLimits>(
     () => ({
@@ -139,6 +145,9 @@ export function useDateTimeRangeController(props: DateTimeRangeProps) {
     useState<DateTimeValidationResult>(VALID_FIELD);
   const [endFieldValidation, setEndFieldValidation] =
     useState<DateTimeValidationResult>(VALID_FIELD);
+  const [showValidation, setShowValidation] = useState(false);
+  const lastNotifiedValidationKeyRef = useRef<string | null>(null);
+  const skipNextValidationNotifyRef = useRef(false);
 
   const value = isControlled ? (valueProp ?? EMPTY_RANGE) : internalValue;
   const rangeOrderValid = isRangeOrderValid(value.start, value.end);
@@ -148,18 +157,28 @@ export function useDateTimeRangeController(props: DateTimeRangeProps) {
       buildRangeValidationResult({
         start: startFieldValidation,
         end: endFieldValidation,
+        startValue: value.start,
+        endValue: value.end,
         rangeOrderValid,
         startFieldName,
         endFieldName,
-        messages: rangeText,
+        fillRequired,
+        locale,
+        validationRules,
+        checkRequiredAndRange: showValidation,
       }),
     [
-      endFieldValidation,
       endFieldName,
+      endFieldValidation,
+      fillRequired,
+      locale,
       rangeOrderValid,
-      rangeText,
+      showValidation,
       startFieldName,
       startFieldValidation,
+      validationRules,
+      value.end,
+      value.start,
     ],
   );
 
@@ -180,6 +199,7 @@ export function useDateTimeRangeController(props: DateTimeRangeProps) {
 
   const commitValue = useCallback(
     (nextValue: typeof value, context: DateTimeRangeChangeContext) => {
+      setShowValidation(true);
       const resolved = resolveFlexRange(nextValue);
 
       if (!isControlled) {
@@ -325,9 +345,77 @@ export function useDateTimeRangeController(props: DateTimeRangeProps) {
     ],
   );
 
+  const endReferenceDate = useMemo(
+    () => resolveEndReferenceDate(value.start, rangeLimits, mode),
+    [mode, rangeLimits, value.start],
+  );
+
+  const startReferenceDate = useMemo(
+    () => resolveStartReferenceDate(value.end, rangeLimits, mode),
+    [mode, rangeLimits, value.end],
+  );
+
   useEffect(() => {
+    if (!showValidation) {
+      return;
+    }
+
+    if (skipNextValidationNotifyRef.current) {
+      skipNextValidationNotifyRef.current = false;
+      return;
+    }
+
+    const key = `${validationResult.valid}:${validationResult.reason ?? ""}:${validationResult.message ?? ""}`;
+    if (lastNotifiedValidationKeyRef.current === key) {
+      return;
+    }
+
+    lastNotifiedValidationKeyRef.current = key;
     onValidationChange?.(validationResult);
-  }, [onValidationChange, validationResult]);
+  }, [onValidationChange, showValidation, validationResult]);
+
+  const validateFields = useCallback(
+    (
+      start: DateTimeValidationResult,
+      end: DateTimeValidationResult,
+    ): DateTimeRangeValidationResult => {
+      setShowValidation(true);
+      const result = buildRangeValidationResult({
+        start,
+        end,
+        startValue: value.start,
+        endValue: value.end,
+        rangeOrderValid,
+        startFieldName,
+        endFieldName,
+        fillRequired,
+        locale,
+        validationRules,
+        checkRequiredAndRange: true,
+      });
+
+      setStartFieldValidation(result.fields?.start ?? start);
+      setEndFieldValidation(result.fields?.end ?? end);
+
+      const key = `${result.valid}:${result.reason ?? ""}:${result.message ?? ""}`;
+      lastNotifiedValidationKeyRef.current = key;
+      skipNextValidationNotifyRef.current = true;
+      onValidationChange?.(result);
+
+      return result;
+    },
+    [
+      endFieldName,
+      fillRequired,
+      locale,
+      onValidationChange,
+      rangeOrderValid,
+      startFieldName,
+      validationRules,
+      value.end,
+      value.start,
+    ],
+  );
 
   return {
     value,
@@ -336,6 +424,8 @@ export function useDateTimeRangeController(props: DateTimeRangeProps) {
     validationResult,
     startConstraints,
     endConstraints,
+    startReferenceDate,
+    endReferenceDate,
     applyRangeValue: commitValue,
     handleStartChange,
     handleEndChange,
@@ -358,5 +448,6 @@ export function useDateTimeRangeController(props: DateTimeRangeProps) {
     },
     startProps,
     endProps,
+    validateFields,
   };
 }

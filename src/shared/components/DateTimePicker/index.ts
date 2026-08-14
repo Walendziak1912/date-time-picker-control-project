@@ -5,6 +5,7 @@ export type {
   DateTimePickerMode,
   DateTimePickerTimezone,
   DateTimeValidationResult,
+  DateTimeValidationReason,
   DateTimeChangeContext,
   DateTimePickerLocaleText,
   SupportedLocale,
@@ -13,7 +14,17 @@ export type {
   DateTimePickerPrecisionValue,
   ResolvedDateTimePickerPrecision,
   DateTimePrecisionsInput,
+  ValidationCode,
+  ValidationRules,
+  DateTimePickerValidationCode,
+  DateTimeRangeValidationCode,
+  DateTimePickerHandle,
 } from './types'
+export { FillRequired } from './types/validation.types'
+export {
+  getDefaultValidationRules,
+  resolveValidationMessage,
+} from './repository'
 export {
   parseBackendUtc,
   serializeBackendUtc,

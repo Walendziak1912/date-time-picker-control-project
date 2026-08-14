@@ -1,4 +1,4 @@
-import { DateTimePicker } from "../../DateTimePicker";
+import { DateTimePicker, type DateTimePickerHandle } from "../../DateTimePicker";
 import { resolveRangeFieldErrors } from "../repository";
 import {
   useDateTimeRangeController,
@@ -7,14 +7,19 @@ import {
 } from "../hooks";
 import type {
   DateTimeRangeFlexibility,
+  DateTimeRangeHandle,
   DateTimeRangePresetKey,
   DateTimeRangeProps,
 } from "../types";
 import { DateTimeRangeFlexDates } from "./DateTimeRangeFlexDates";
 import { DateTimeRangePresets } from "./DateTimeRangePresets";
 import "./DateTimeRange.css";
+import { forwardRef, useImperativeHandle, useRef } from "react";
 
-export function DateTimeRange(props: DateTimeRangeProps) {
+export const DateTimeRange = forwardRef<
+  DateTimeRangeHandle,
+  DateTimeRangeProps
+>(function DateTimeRange(props, ref) {
   const {
     startLabel: startLabelProp,
     endLabel: endLabelProp,
@@ -61,6 +66,8 @@ export function DateTimeRange(props: DateTimeRangeProps) {
     timezone = "UTC",
     rangeLocaleText,
     useEndOfDayAsRangeEnd,
+    fillRequired,
+    validationRules,
     ...pickerProps
   } = props;
 
@@ -95,6 +102,8 @@ export function DateTimeRange(props: DateTimeRangeProps) {
     defaultFlexibility,
     timezone,
     useEndOfDayAsRangeEnd,
+    fillRequired,
+    validationRules,
     ...pickerProps,
   });
 
@@ -104,6 +113,8 @@ export function DateTimeRange(props: DateTimeRangeProps) {
     validationResult,
     startConstraints,
     endConstraints,
+    startReferenceDate,
+    endReferenceDate,
     applyRangeValue,
     handleStartChange,
     handleEndChange,
@@ -115,7 +126,23 @@ export function DateTimeRange(props: DateTimeRangeProps) {
     endLabel,
     rangeText,
     sharedPickerConfig,
+    validateFields,
   } = controller;
+
+  const startPickerRef = useRef<DateTimePickerHandle>(null);
+  const endPickerRef = useRef<DateTimePickerHandle>(null);
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      validate: () => {
+        const startResult = startPickerRef.current?.validate() ?? { valid: true };
+        const endResult = endPickerRef.current?.validate() ?? { valid: true };
+        return validateFields(startResult, endResult);
+      },
+    }),
+    [validateFields],
+  );
 
   const presets = useDateTimeRangePresets({
     enabled: showPresets,
@@ -145,6 +172,7 @@ export function DateTimeRange(props: DateTimeRangeProps) {
     disabled,
     readOnly,
     showTextUnderFieldWhenError,
+    validationRules,
     ...sharedPickerConfig,
     ...pickerProps,
   };
@@ -200,6 +228,7 @@ export function DateTimeRange(props: DateTimeRangeProps) {
     >
       <div className="dtr-fields">
         <DateTimePicker
+          ref={startPickerRef}
           {...sharedProps}
           {...startProps}
           label={startLabel}
@@ -213,6 +242,7 @@ export function DateTimeRange(props: DateTimeRangeProps) {
           maxDate={startConstraints.maxDate}
           minDateTime={startConstraints.minDateTime}
           maxDateTime={startConstraints.maxDateTime}
+          referenceDate={startReferenceDate}
         />
 
         {separator != null && (
@@ -222,6 +252,7 @@ export function DateTimeRange(props: DateTimeRangeProps) {
         )}
 
         <DateTimePicker
+          ref={endPickerRef}
           {...sharedProps}
           {...endProps}
           label={endLabel}
@@ -235,6 +266,7 @@ export function DateTimeRange(props: DateTimeRangeProps) {
           maxDate={endConstraints.maxDate}
           minDateTime={endConstraints.minDateTime}
           maxDateTime={endConstraints.maxDateTime}
+          referenceDate={endReferenceDate}
         />
 
         {showPresets && (
@@ -269,4 +301,4 @@ export function DateTimeRange(props: DateTimeRangeProps) {
       )}
     </div>
   );
-}
+});

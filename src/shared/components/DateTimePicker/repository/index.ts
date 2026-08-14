@@ -13,6 +13,10 @@ export {
   startOfDay,
 } from './dateUtils'
 export { resolveLocaleText } from './localeText'
+export {
+  getDefaultValidationRules,
+  resolveValidationMessage,
+} from './validationRules'
 export { resolvePickerSections } from './pickerSections'
 export {
   addMonthsTz,

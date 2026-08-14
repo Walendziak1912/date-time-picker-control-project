@@ -1,96 +1,320 @@
 import type { DateTimeValidationResult } from "../../DateTimePicker";
-import { formatRangeMessage } from "./rangeLocaleText";
+import {
+  isEndDateRequired,
+  isStartDateRequired,
+  resolveValidationMessage,
+} from "../../DateTimePicker/repository/validationRules";
+import {
+  FillRequired,
+  type DateTimeRangeValidationCode,
+  type ValidationRules,
+} from "../../DateTimePicker/types/validation.types";
 import type { DateTimeRangeValidationResult } from "../types";
-import type { ResolvedRangeLocaleText } from "../types/rangeLocaleText.types";
 
 export const VALID_FIELD: DateTimeValidationResult = { valid: true };
 
-export function fieldLabel(label: unknown, fallback: string): string {
-  return typeof label === "string" && label.trim().length > 0
-    ? label
-    : fallback;
+function mapFieldFormatCode(
+  field: "start" | "end",
+): "start-date-format" | "end-date-format" {
+  return field === "start" ? "start-date-format" : "end-date-format";
 }
 
-export function buildFormatValidationMessage(
-  start: DateTimeValidationResult,
-  end: DateTimeValidationResult,
-  startFieldName: string,
-  endFieldName: string,
-  messages: Pick<
-    ResolvedRangeLocaleText,
-    "invalidFormatBoth" | "invalidFormatStart" | "invalidFormatEnd"
-  >,
-): string {
+function fieldVars(startFieldName: string, endFieldName: string) {
+  return { startField: startFieldName, endField: endFieldName };
+}
+
+function buildFormatValidationMessage(options: {
+  start: DateTimeValidationResult;
+  end: DateTimeValidationResult;
+  startFieldName: string;
+  endFieldName: string;
+  locale?: string;
+  validationRules?: ValidationRules;
+}): { message: string; reason: DateTimeRangeValidationCode } {
+  const { start, end, startFieldName, endFieldName, locale, validationRules } =
+    options;
+  const vars = fieldVars(startFieldName, endFieldName);
   const startInvalid = !start.valid;
   const endInvalid = !end.valid;
-  const fieldVars = { startField: startFieldName, endField: endFieldName };
 
   if (startInvalid && endInvalid) {
-    return formatRangeMessage(messages.invalidFormatBoth, fieldVars);
+    return {
+      reason: "start-date-format",
+      message: resolveValidationMessage(
+        "start-date-format",
+        locale,
+        validationRules,
+        vars,
+      ),
+    };
   }
 
   if (startInvalid) {
-    return (
-      start.message ??
-      formatRangeMessage(messages.invalidFormatStart, fieldVars)
-    );
+    return {
+      reason: "start-date-format",
+      message:
+        start.message ??
+        resolveValidationMessage(
+          "start-date-format",
+          locale,
+          validationRules,
+          vars,
+        ),
+    };
   }
 
-  return (
-    end.message ?? formatRangeMessage(messages.invalidFormatEnd, fieldVars)
-  );
+  return {
+    reason: "end-date-format",
+    message:
+      end.message ??
+      resolveValidationMessage(
+        "end-date-format",
+        locale,
+        validationRules,
+        vars,
+      ),
+  };
+}
+
+function buildRequiredValidationResult(options: {
+  startEmpty: boolean;
+  endEmpty: boolean;
+  fillRequired: FillRequired;
+  startFieldName: string;
+  endFieldName: string;
+  locale?: string;
+  validationRules?: ValidationRules;
+}): DateTimeRangeValidationResult | null {
+  const {
+    startEmpty,
+    endEmpty,
+    fillRequired,
+    startFieldName,
+    endFieldName,
+    locale,
+    validationRules,
+  } = options;
+  const vars = fieldVars(startFieldName, endFieldName);
+
+  if (fillRequired === FillRequired.None) {
+    return null;
+  }
+
+  if (fillRequired === FillRequired.All && startEmpty && endEmpty) {
+    return {
+      valid: false,
+      reason: "both-dates-required",
+      message: resolveValidationMessage(
+        "both-dates-required",
+        locale,
+        validationRules,
+        vars,
+      ),
+      fields: {
+        start: {
+          valid: false,
+          reason: "date-required",
+          message: resolveValidationMessage(
+            "start-date-required",
+            locale,
+            validationRules,
+            vars,
+          ),
+        },
+        end: {
+          valid: false,
+          reason: "date-required",
+          message: resolveValidationMessage(
+            "end-date-required",
+            locale,
+            validationRules,
+            vars,
+          ),
+        },
+      },
+    };
+  }
+
+  if (isStartDateRequired(fillRequired) && startEmpty) {
+    return {
+      valid: false,
+      reason: "start-date-required",
+      message: resolveValidationMessage(
+        "start-date-required",
+        locale,
+        validationRules,
+        vars,
+      ),
+      fields: {
+        start: {
+          valid: false,
+          reason: "date-required",
+          message: resolveValidationMessage(
+            "start-date-required",
+            locale,
+            validationRules,
+            vars,
+          ),
+        },
+        end: VALID_FIELD,
+      },
+    };
+  }
+
+  if (isEndDateRequired(fillRequired) && endEmpty) {
+    return {
+      valid: false,
+      reason: "end-date-required",
+      message: resolveValidationMessage(
+        "end-date-required",
+        locale,
+        validationRules,
+        vars,
+      ),
+      fields: {
+        start: VALID_FIELD,
+        end: {
+          valid: false,
+          reason: "date-required",
+          message: resolveValidationMessage(
+            "end-date-required",
+            locale,
+            validationRules,
+            vars,
+          ),
+        },
+      },
+    };
+  }
+
+  return null;
 }
 
 export function buildRangeValidationResult(options: {
   start: DateTimeValidationResult;
   end: DateTimeValidationResult;
+  startValue: Date | null;
+  endValue: Date | null;
   rangeOrderValid: boolean;
   startFieldName: string;
   endFieldName: string;
-  messages: Pick<
-    ResolvedRangeLocaleText,
-    | "invalidFormatBoth"
-    | "invalidFormatStart"
-    | "invalidFormatEnd"
-    | "invalidRange"
-  >;
+  fillRequired?: FillRequired;
+  locale?: string;
+  validationRules?: ValidationRules;
+  checkRequiredAndRange?: boolean;
 }): DateTimeRangeValidationResult {
   const {
     start,
     end,
+    startValue,
+    endValue,
     rangeOrderValid,
     startFieldName,
     endFieldName,
-    messages,
+    fillRequired = FillRequired.None,
+    locale,
+    validationRules,
+    checkRequiredAndRange = true,
   } = options;
-  const fields = { start, end };
-  const fieldVars = { startField: startFieldName, endField: endFieldName };
+
+  const vars = fieldVars(startFieldName, endFieldName);
+  const startEmpty = startValue == null;
+  const endEmpty = endValue == null;
 
   if (!start.valid || !end.valid) {
+    const { message, reason } = buildFormatValidationMessage({
+      start,
+      end,
+      startFieldName,
+      endFieldName,
+      locale,
+      validationRules,
+    });
+
     return {
       valid: false,
-      reason: "invalidFormat",
-      message: buildFormatValidationMessage(
-        start,
-        end,
-        startFieldName,
-        endFieldName,
-        messages,
-      ),
-      fields,
+      reason,
+      message,
+      fields: {
+        start: start.valid
+          ? start
+          : {
+              valid: false,
+              reason: "date-format",
+              message: resolveValidationMessage(
+                mapFieldFormatCode("start"),
+                locale,
+                validationRules,
+                vars,
+              ),
+            },
+        end: end.valid
+          ? end
+          : {
+              valid: false,
+              reason: "date-format",
+              message: resolveValidationMessage(
+                mapFieldFormatCode("end"),
+                locale,
+                validationRules,
+                vars,
+              ),
+            },
+      },
     };
   }
 
-  if (!rangeOrderValid) {
-    return {
-      valid: false,
-      reason: "invalidRange",
-      message: formatRangeMessage(messages.invalidRange, fieldVars),
-      fields,
-    };
+  if (checkRequiredAndRange) {
+    const requiredResult = buildRequiredValidationResult({
+      startEmpty,
+      endEmpty,
+      fillRequired,
+      startFieldName,
+      endFieldName,
+      locale,
+      validationRules,
+    });
+    if (requiredResult) {
+      return requiredResult;
+    }
+
+    if (!rangeOrderValid && startValue != null && endValue != null) {
+      const reason: DateTimeRangeValidationCode = "end-date-before-start-date";
+
+      return {
+        valid: false,
+        reason,
+        message: resolveValidationMessage(
+          reason,
+          locale,
+          validationRules,
+          vars,
+        ),
+        fields: {
+          start: {
+            valid: false,
+            message: resolveValidationMessage(
+              "start-date-after-end-date",
+              locale,
+              validationRules,
+              vars,
+            ),
+          },
+          end: {
+            valid: false,
+            message: resolveValidationMessage(
+              "end-date-before-start-date",
+              locale,
+              validationRules,
+              vars,
+            ),
+          },
+        },
+      };
+    }
   }
 
-  return { valid: true, fields };
+  return { valid: true, fields: { start, end } };
 }
 
 export function resolveRangeFieldErrors(options: {
@@ -100,16 +324,30 @@ export function resolveRangeFieldErrors(options: {
   const { error, validationResult } = options;
   const startFieldInvalid = validationResult.fields?.start?.valid === false;
   const endFieldInvalid = validationResult.fields?.end?.valid === false;
-  const rangeOrderInvalid = validationResult.reason === "invalidRange";
+  const reason = validationResult.reason;
+  const rangeOrderInvalid = reason === "end-date-before-start-date";
+  const bothRequiredInvalid = reason === "both-dates-required";
+  const startRequiredInvalid = reason === "start-date-required";
+  const endRequiredInvalid = reason === "end-date-required";
   const hasFieldLevelDetail =
-    startFieldInvalid || endFieldInvalid || rangeOrderInvalid;
+    startFieldInvalid ||
+    endFieldInvalid ||
+    rangeOrderInvalid ||
+    bothRequiredInvalid ||
+    startRequiredInvalid ||
+    endRequiredInvalid;
 
   return {
     startHasError:
-      startFieldInvalid || (Boolean(error) && !hasFieldLevelDetail),
+      startFieldInvalid ||
+      bothRequiredInvalid ||
+      startRequiredInvalid ||
+      (Boolean(error) && !hasFieldLevelDetail),
     endHasError:
       endFieldInvalid ||
       rangeOrderInvalid ||
+      bothRequiredInvalid ||
+      endRequiredInvalid ||
       (Boolean(error) && !hasFieldLevelDetail),
   };
 }

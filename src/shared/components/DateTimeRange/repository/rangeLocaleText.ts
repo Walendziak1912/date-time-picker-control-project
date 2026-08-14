@@ -34,18 +34,6 @@ function defaultsForLocale(
     presetPlaceholder: pl ? "Wybierz okres" : "Select period",
     flexDatesPlaceholder: pl ? "Wybierz elastyczność" : "Select flexibility",
     flexDatesLabel: pl ? "Elastyczne opcje dat" : "Flexible date options",
-    invalidFormatBoth: pl
-      ? "Nieprawidłowy format daty w polach {startField} i {endField}"
-      : "Invalid date format in fields {startField} and {endField}",
-    invalidFormatStart: pl
-      ? "Nieprawidłowy format daty w polu {startField}"
-      : "Invalid date format in field {startField}",
-    invalidFormatEnd: pl
-      ? "Nieprawidłowy format daty w polu {endField}"
-      : "Invalid date format in field {endField}",
-    invalidRange: pl
-      ? "Data w polu {endField} nie może być wcześniejsza niż w polu {startField}."
-      : "The date in {endField} cannot be earlier than in {startField}.",
   };
 }
 
@@ -76,6 +64,12 @@ function mergeFlexDatesOptions(
   }));
 }
 
+export function resolveFieldLabel(label: unknown, fallback: string): string {
+  return typeof label === "string" && label.trim().length > 0
+    ? label
+    : fallback;
+}
+
 export function resolveRangeLocaleText(
   locale?: string,
   overrides?: DateTimeRangeLocaleText,
@@ -90,24 +84,10 @@ export function resolveRangeLocaleText(
     flexDatesPlaceholder:
       overrides?.flexDatesPlaceholder ?? base.flexDatesPlaceholder,
     flexDatesLabel: overrides?.flexDatesLabel ?? base.flexDatesLabel,
-    invalidFormatBoth: overrides?.invalidFormatBoth ?? base.invalidFormatBoth,
-    invalidFormatStart:
-      overrides?.invalidFormatStart ?? base.invalidFormatStart,
-    invalidFormatEnd: overrides?.invalidFormatEnd ?? base.invalidFormatEnd,
-    invalidRange: overrides?.invalidRange ?? base.invalidRange,
     presetOptions: mergePresetOptions(resolvedLocale, overrides?.presets),
     flexDatesOptions: mergeFlexDatesOptions(
       resolvedLocale,
       overrides?.flexDates,
     ),
   };
-}
-
-export function formatRangeMessage(
-  template: string,
-  vars: { startField: string; endField: string },
-): string {
-  return template
-    .replace(/\{startField\}/g, vars.startField)
-    .replace(/\{endField\}/g, vars.endField);
 }

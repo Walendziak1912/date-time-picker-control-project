@@ -11,18 +11,15 @@ export {
   normalizeRangeValue,
   buildStartConstraints,
   buildEndConstraints,
+  resolveEndReferenceDate,
+  resolveStartReferenceDate,
 } from './rangeUtils'
 export {
-  fieldLabel,
-  buildFormatValidationMessage,
   buildRangeValidationResult,
   resolveRangeFieldErrors,
   VALID_FIELD,
 } from './validationUtils'
-export {
-  resolveRangeLocaleText,
-  formatRangeMessage,
-} from './rangeLocaleText'
+export { resolveFieldLabel, resolveRangeLocaleText } from './rangeLocaleText'
 export {
   DEFAULT_PRESET_OPTIONS,
   buildDefaultPresetOptions,

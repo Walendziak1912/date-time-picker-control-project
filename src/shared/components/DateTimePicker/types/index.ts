@@ -8,6 +8,7 @@ export type {
   DateTimeValidationReason,
   DateTimeValidationResult,
   DateTimePickerProps,
+  DateTimePickerHandle,
 } from './DateTimePicker.types'
 export type {
   DateTimePickerPrecisionValue,
@@ -24,3 +25,11 @@ export {
 export type { SupportedLocale } from './locale.types'
 export type { DateTimePickerLocaleText, ResolvedLocaleText } from './localeText.types'
 export type { DateDisableConstraints, TimeDisableConstraints } from './constraints.types'
+export type {
+  ValidationCode,
+  ValidationRules,
+  ValidationMessageVars,
+  DateTimePickerValidationCode,
+  DateTimeRangeValidationCode,
+} from './validation.types'
+export { FillRequired } from './validation.types'

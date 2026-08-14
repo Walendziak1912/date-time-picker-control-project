@@ -1,7 +1,12 @@
 import type { ReactNode } from "react";
 
-import type { SupportedLocale } from "./locale.types";
+import type {
+  DateTimePickerValidationCode,
+  FillRequired,
+  ValidationRules,
+} from "./validation.types";
 import type { DateTimePickerLocaleText } from "./localeText.types";
+import type { SupportedLocale } from "./locale.types";
 import type {
   DateTimePickerPrecisionValue,
   DateTimePrecisionsInput,
@@ -36,7 +41,7 @@ export type DateTimeChangeContext = {
   precision?: DateTimePickerPrecisionValue | null;
 };
 
-export type DateTimeValidationReason = "invalidFormat";
+export type DateTimeValidationReason = DateTimePickerValidationCode;
 
 export type DateTimeValidationResult = {
   valid: boolean;
@@ -44,9 +49,15 @@ export type DateTimeValidationResult = {
   message?: string;
 };
 
+export type DateTimePickerHandle = {
+  validate: () => DateTimeValidationResult;
+};
+
 export type DateTimePickerProps = {
   value?: Date | null;
   defaultValue?: Date | null;
+  //miesiąc kalendarza przy otwarciu popovera, gdy value jest puste
+  referenceDate?: Date | null;
   onChange?: (value: Date | null, context: DateTimeChangeContext) => void;
   onAccept?: (value: Date | null, context: DateTimeChangeContext) => void;
   open?: boolean;
@@ -133,4 +144,8 @@ export type DateTimePickerProps = {
   showBorderFieldWhenError?: boolean;
   //raport walidacji pola tekstowego np. Toast u rodzica
   onValidationChange?: (result: DateTimeValidationResult) => void;
+  //wymagalność uzupełnienia daty. Domyślnie None (data opcjonalna)
+  fillRequired?: FillRequired;
+  //nadpisanie komunikatów walidacji (klucz = kod błędu). Brak klucza = domyślny komunikat
+  validationRules?: ValidationRules;
 };

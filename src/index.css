@@ -1,0 +1,35 @@
+.example-prime-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-width: 28rem;
+  margin-block: 0.5rem 0.75rem;
+}
+
+.example-prime-form .field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.example-prime-form .field label {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.example-prime-form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.selected-value {
+  margin: 0.5rem 0 0;
+  font-size: 0.75rem;
+  line-height: 1.45;
+}
+
+.selected-value code {
+  word-break: break-all;
+}

@@ -21,7 +21,6 @@ function defaultsForLocale(locale: SupportedLocale): Omit<ResolvedLocaleText, "w
         seconds: pl ? "Sekundy" : "Seconds",
         milliseconds: pl ? "Milisekundy" : "Milliseconds",
         meridiem: pl ? "Południe" : "Meridiem",
-        invalidFormat: pl ? "Nieprawidłowy format daty ({format})" : "Invalid date format ({format})",
     };
 }
 
@@ -47,7 +46,6 @@ export function resolveLocaleText(locale?: string, overrides?: DateTimePickerLoc
         seconds: overrides?.seconds ?? base.seconds,
         milliseconds: overrides?.milliseconds ?? base.milliseconds,
         meridiem: overrides?.meridiem ?? base.meridiem,
-        invalidFormat: overrides?.invalidFormat ?? base.invalidFormat,
         precisionLabels: overrides?.precisionLabels ?? {},
     };
 }

@@ -23,10 +23,13 @@ import {
   withoutMillisecondsTz,
   nowInTimezone,
 } from '../repository'
+import { resolveValidationMessage } from '../repository/validationRules'
+import { FillRequired } from '../types/validation.types'
 import type {
   DateDisableConstraints,
   DateTimePickerProps,
   DateTimePickerView,
+  DateTimeValidationResult,
   TimeDisableConstraints,
 } from '../types'
 import { resolveDateTimePickerPrecision } from '../types/precision.types'
@@ -40,6 +43,7 @@ import {
 export function useDateTimePickerController({
   value: valueProp,
   defaultValue = null,
+  referenceDate,
   onChange,
   onAccept,
   open: openProp,
@@ -82,6 +86,8 @@ export function useDateTimePickerController({
   error: errorProp = false,
   helperText,
   onValidationChange,
+  fillRequired = FillRequired.None,
+  validationRules,
 }: DateTimePickerProps) {
   const availablePrecisions = useMemo(
     () => normalizeDateTimePrecisions(dateTimePrecisions ?? dateTimePrecision),
@@ -109,13 +115,16 @@ export function useDateTimePickerController({
   const [internalValue, setInternalValue] = useState<Date | null>(defaultValue)
   const [internalOpen, setInternalOpen] = useState(false)
   const [draft, setDraft] = useState<Date | null>(valueProp ?? defaultValue)
-  const [month, setMonth] = useState<Date>(() => valueProp ?? defaultValue ?? new Date())
+  const [month, setMonth] = useState<Date>(
+    () => valueProp ?? defaultValue ?? referenceDate ?? new Date(),
+  )
   const [inputText, setInputText] = useState('')
   const [focused, setFocused] = useState(false)
   const [fieldError, setFieldError] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const valueOnOpenRef = useRef<Date | null>(null)
+  const lastValidationRef = useRef<DateTimeValidationResult>({ valid: true })
   const labelId = useId()
 
   const value = isControlled ? (valueProp ?? null) : internalValue
@@ -145,7 +154,18 @@ export function useDateTimePickerController({
 
   const text = resolveLocaleText(locale, localeTextProp)
   const formattedValue = formatDateTime(value, format, ampm, locale, timezone)
-  const invalidFormatMessage = text.invalidFormat.replace('{format}', format)
+  const dateRequired = fillRequired === FillRequired.All
+  const invalidFormatMessage = resolveValidationMessage(
+    'date-format',
+    locale,
+    validationRules,
+    { format },
+  )
+  const dateRequiredMessage = resolveValidationMessage(
+    'date-required',
+    locale,
+    validationRules,
+  )
   const hasError = errorProp || fieldError
 
   const dateConstraints = useMemo<DateDisableConstraints>(
@@ -195,18 +215,21 @@ export function useDateTimePickerController({
   )
 
   const reportValidation = useCallback(
-    (valid: boolean, reason?: 'invalidFormat') => {
-      if (valid) {
-        onValidationChange?.({ valid: true })
-        return
-      }
-      onValidationChange?.({
-        valid: false,
-        reason,
-        message: invalidFormatMessage,
-      })
+    (valid: boolean, reason?: 'date-required' | 'date-format') => {
+      const result: DateTimeValidationResult = valid
+        ? { valid: true }
+        : {
+            valid: false,
+            reason,
+            message:
+              reason === 'date-required'
+                ? dateRequiredMessage
+                : invalidFormatMessage,
+          }
+      lastValidationRef.current = result
+      onValidationChange?.(result)
     },
-    [invalidFormatMessage, onValidationChange],
+    [dateRequiredMessage, invalidFormatMessage, onValidationChange],
   )
 
   const normalizeValue = useCallback(
@@ -265,10 +288,10 @@ export function useDateTimePickerController({
     if (open && !prevOpenRef.current) {
       valueOnOpenRef.current = value ? new Date(value.getTime()) : null
       setDraft(value)
-      setMonth(value ?? new Date())
+      setMonth(value ?? referenceDate ?? new Date())
     }
     prevOpenRef.current = open
-  }, [open, value])
+  }, [open, referenceDate, value])
 
   useEffect(() => {
     if (!isControlled) return
@@ -430,11 +453,17 @@ export function useDateTimePickerController({
       event.stopPropagation()
       setDraft(null)
       setInputText('')
-      setFieldError(false)
       emitChange(null, 'view')
       onAccept?.(null, { source: 'view' })
+      if (dateRequired) {
+        setFieldError(true)
+        reportValidation(false, 'date-required')
+        return
+      }
+      setFieldError(false)
+      reportValidation(true)
     },
-    [emitChange, onAccept],
+    [dateRequired, emitChange, onAccept, reportValidation],
   )
 
   const commitField = useCallback(
@@ -442,6 +471,11 @@ export function useDateTimePickerController({
       if (readOnly || disabled) return
       const parsed = parseDateTime(fieldText, format, ampm, timezone)
       if (fieldText.trim() === '') {
+        if (dateRequired) {
+          setFieldError(true)
+          reportValidation(false, 'date-required')
+          return
+        }
         setFieldError(false)
         setDraft(null)
         emitChange(null, 'field')
@@ -452,7 +486,7 @@ export function useDateTimePickerController({
       }
       if (!parsed) {
         setFieldError(true)
-        reportValidation(false, 'invalidFormat')
+        reportValidation(false, 'date-format')
         return
       }
       const normalized = applyValidValue(parsed)
@@ -464,6 +498,7 @@ export function useDateTimePickerController({
     [
       ampm,
       applyValidValue,
+      dateRequired,
       disabled,
       emitChange,
       format,
@@ -628,6 +663,11 @@ export function useDateTimePickerController({
   const inputValue = focused || fieldError ? inputText : formattedValue
   const inputSize = Math.max(inputValue.length, format.length, 1)
 
+  const validate = useCallback((): DateTimeValidationResult => {
+    commitField(focused || fieldError ? inputText : formattedValue)
+    return lastValidationRef.current
+  }, [commitField, fieldError, focused, formattedValue, inputText])
+
   return {
     rootRef,
     inputRef,
@@ -680,6 +720,7 @@ export function useDateTimePickerController({
     activePrecision,
     showPrecisionSwitcher,
     handlePrecisionChange,
+    validate,
   }
 }
 
