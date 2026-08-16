@@ -14,7 +14,7 @@ import type {
 import { DateTimeRangeFlexDates } from "./DateTimeRangeFlexDates";
 import { DateTimeRangePresets } from "./DateTimeRangePresets";
 import "./DateTimeRange.css";
-import { forwardRef, useImperativeHandle, useRef } from "react";
+import { forwardRef, useCallback, useImperativeHandle, useRef } from "react";
 
 export const DateTimeRange = forwardRef<
   DateTimeRangeHandle,
@@ -127,10 +127,33 @@ export const DateTimeRange = forwardRef<
     rangeText,
     sharedPickerConfig,
     validateFields,
+    rangeContainerRef,
+    handlePickerClose,
+    handlePickerOpen,
   } = controller;
 
   const startPickerRef = useRef<DateTimePickerHandle>(null);
   const endPickerRef = useRef<DateTimePickerHandle>(null);
+
+  const handleStartPickerClose = useCallback(() => {
+    handlePickerClose();
+    startProps?.onClose?.();
+  }, [handlePickerClose, startProps]);
+
+  const handleEndPickerClose = useCallback(() => {
+    handlePickerClose();
+    endProps?.onClose?.();
+  }, [endProps, handlePickerClose]);
+
+  const handleStartPickerOpen = useCallback(() => {
+    handlePickerOpen();
+    startProps?.onOpen?.();
+  }, [handlePickerOpen, startProps]);
+
+  const handleEndPickerOpen = useCallback(() => {
+    handlePickerOpen();
+    endProps?.onOpen?.();
+  }, [endProps, handlePickerOpen]);
 
   useImperativeHandle(
     ref,
@@ -221,6 +244,7 @@ export const DateTimeRange = forwardRef<
 
   return (
     <div
+      ref={rangeContainerRef}
       className={["dtr", layoutModifiers, className].filter(Boolean).join(" ")}
       data-disabled={disabled || undefined}
       data-error={hasError || undefined}
@@ -231,6 +255,8 @@ export const DateTimeRange = forwardRef<
           ref={startPickerRef}
           {...sharedProps}
           {...startProps}
+          onOpen={handleStartPickerOpen}
+          onClose={handleStartPickerClose}
           label={startLabel}
           error={startHasError}
           showBorderFieldWhenError={showBorderFieldWhenError && startHasError}
@@ -255,6 +281,8 @@ export const DateTimeRange = forwardRef<
           ref={endPickerRef}
           {...sharedProps}
           {...endProps}
+          onOpen={handleEndPickerOpen}
+          onClose={handleEndPickerClose}
           label={endLabel}
           error={endHasError}
           showBorderFieldWhenError={showBorderFieldWhenError && endHasError}

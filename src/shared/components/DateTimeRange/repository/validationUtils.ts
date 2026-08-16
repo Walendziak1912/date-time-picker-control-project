@@ -13,6 +13,12 @@ import type { DateTimeRangeValidationResult } from "../types";
 
 export const VALID_FIELD: DateTimeValidationResult = { valid: true };
 
+function isFieldFormatInvalid(
+  field: DateTimeValidationResult,
+): boolean {
+  return !field.valid && field.reason === "date-format";
+}
+
 function mapFieldFormatCode(
   field: "start" | "end",
 ): "start-date-format" | "end-date-format" {
@@ -34,8 +40,8 @@ function buildFormatValidationMessage(options: {
   const { start, end, startFieldName, endFieldName, locale, validationRules } =
     options;
   const vars = fieldVars(startFieldName, endFieldName);
-  const startInvalid = !start.valid;
-  const endInvalid = !end.valid;
+  const startInvalid = isFieldFormatInvalid(start);
+  const endInvalid = isFieldFormatInvalid(end);
 
   if (startInvalid && endInvalid) {
     return {
@@ -84,6 +90,7 @@ function buildRequiredValidationResult(options: {
   endFieldName: string;
   locale?: string;
   validationRules?: ValidationRules;
+  allowPartialRange?: boolean;
 }): DateTimeRangeValidationResult | null {
   const {
     startEmpty,
@@ -93,10 +100,19 @@ function buildRequiredValidationResult(options: {
     endFieldName,
     locale,
     validationRules,
+    allowPartialRange = false,
   } = options;
   const vars = fieldVars(startFieldName, endFieldName);
 
   if (fillRequired === FillRequired.None) {
+    return null;
+  }
+
+  if (
+    allowPartialRange &&
+    fillRequired === FillRequired.All &&
+    startEmpty !== endEmpty
+  ) {
     return null;
   }
 
@@ -202,6 +218,7 @@ export function buildRangeValidationResult(options: {
   locale?: string;
   validationRules?: ValidationRules;
   checkRequiredAndRange?: boolean;
+  allowPartialRange?: boolean;
 }): DateTimeRangeValidationResult {
   const {
     start,
@@ -215,13 +232,17 @@ export function buildRangeValidationResult(options: {
     locale,
     validationRules,
     checkRequiredAndRange = true,
+    allowPartialRange = false,
   } = options;
 
   const vars = fieldVars(startFieldName, endFieldName);
   const startEmpty = startValue == null;
   const endEmpty = endValue == null;
 
-  if (!start.valid || !end.valid) {
+  const startFormatInvalid = isFieldFormatInvalid(start);
+  const endFormatInvalid = isFieldFormatInvalid(end);
+
+  if (startFormatInvalid || endFormatInvalid) {
     const { message, reason } = buildFormatValidationMessage({
       start,
       end,
@@ -236,9 +257,8 @@ export function buildRangeValidationResult(options: {
       reason,
       message,
       fields: {
-        start: start.valid
-          ? start
-          : {
+        start: startFormatInvalid
+          ? {
               valid: false,
               reason: "date-format",
               message: resolveValidationMessage(
@@ -247,10 +267,10 @@ export function buildRangeValidationResult(options: {
                 validationRules,
                 vars,
               ),
-            },
-        end: end.valid
-          ? end
-          : {
+            }
+          : start,
+        end: endFormatInvalid
+          ? {
               valid: false,
               reason: "date-format",
               message: resolveValidationMessage(
@@ -259,7 +279,8 @@ export function buildRangeValidationResult(options: {
                 validationRules,
                 vars,
               ),
-            },
+            }
+          : end,
       },
     };
   }
@@ -273,6 +294,7 @@ export function buildRangeValidationResult(options: {
       endFieldName,
       locale,
       validationRules,
+      allowPartialRange,
     });
     if (requiredResult) {
       return requiredResult;

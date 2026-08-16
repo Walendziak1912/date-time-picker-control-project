@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 import type {
   DateTimeChangeContext,
@@ -22,10 +28,12 @@ import {
   buildStartConstraints,
   isRangeOrderValid,
   normalizeRangeValue,
+  notifyValidationIfChanged,
   resolveEndReferenceDate,
   resolveStartReferenceDate,
   resolveFieldLabel,
   resolveRangeLocaleText,
+  shouldShowValidationOnBlur,
   VALID_FIELD,
 } from "../repository";
 import type {
@@ -147,7 +155,23 @@ export function useDateTimeRangeController(props: DateTimeRangeProps) {
     useState<DateTimeValidationResult>(VALID_FIELD);
   const [showValidation, setShowValidation] = useState(false);
   const lastNotifiedValidationKeyRef = useRef<string | null>(null);
-  const skipNextValidationNotifyRef = useRef(false);
+  const rangeContainerRef = useRef<HTMLDivElement>(null);
+  const pickerInteractionGraceUntilRef = useRef(0);
+
+  const notifyValidation = useCallback(
+    (
+      result: DateTimeRangeValidationResult,
+      options?: { force?: boolean },
+    ) => {
+      notifyValidationIfChanged(
+        result,
+        lastNotifiedValidationKeyRef,
+        onValidationChange,
+        options,
+      );
+    },
+    [onValidationChange],
+  );
 
   const value = isControlled ? (valueProp ?? EMPTY_RANGE) : internalValue;
   const rangeOrderValid = isRangeOrderValid(value.start, value.end);
@@ -166,6 +190,7 @@ export function useDateTimeRangeController(props: DateTimeRangeProps) {
         locale,
         validationRules,
         checkRequiredAndRange: showValidation,
+        allowPartialRange: true,
       }),
     [
       endFieldName,
@@ -199,7 +224,6 @@ export function useDateTimeRangeController(props: DateTimeRangeProps) {
 
   const commitValue = useCallback(
     (nextValue: typeof value, context: DateTimeRangeChangeContext) => {
-      setShowValidation(true);
       const resolved = resolveFlexRange(nextValue);
 
       if (!isControlled) {
@@ -360,19 +384,45 @@ export function useDateTimeRangeController(props: DateTimeRangeProps) {
       return;
     }
 
-    if (skipNextValidationNotifyRef.current) {
-      skipNextValidationNotifyRef.current = false;
+    notifyValidation(validationResult);
+  }, [notifyValidation, showValidation, validationResult]);
+
+  const handlePickerClose = useCallback(() => {
+    pickerInteractionGraceUntilRef.current = Date.now() + 300;
+  }, []);
+
+  const handlePickerOpen = useCallback(() => {
+    pickerInteractionGraceUntilRef.current = Date.now() + 300;
+  }, []);
+
+  useEffect(() => {
+    const container = rangeContainerRef.current;
+    if (!container) {
       return;
     }
 
-    const key = `${validationResult.valid}:${validationResult.reason ?? ""}:${validationResult.message ?? ""}`;
-    if (lastNotifiedValidationKeyRef.current === key) {
-      return;
-    }
+    const handleFocusOut = (event: FocusEvent) => {
+      const relatedTarget = event.relatedTarget as Node | null;
+      if (relatedTarget && container.contains(relatedTarget)) {
+        return;
+      }
 
-    lastNotifiedValidationKeyRef.current = key;
-    onValidationChange?.(validationResult);
-  }, [onValidationChange, showValidation, validationResult]);
+      window.setTimeout(() => {
+        if (
+          !shouldShowValidationOnBlur(
+            container,
+            pickerInteractionGraceUntilRef.current,
+          )
+        ) {
+          return;
+        }
+        setShowValidation(true);
+      }, 0);
+    };
+
+    container.addEventListener("focusout", handleFocusOut);
+    return () => container.removeEventListener("focusout", handleFocusOut);
+  }, []);
 
   const validateFields = useCallback(
     (
@@ -392,15 +442,12 @@ export function useDateTimeRangeController(props: DateTimeRangeProps) {
         locale,
         validationRules,
         checkRequiredAndRange: true,
+        allowPartialRange: false,
       });
 
       setStartFieldValidation(result.fields?.start ?? start);
       setEndFieldValidation(result.fields?.end ?? end);
-
-      const key = `${result.valid}:${result.reason ?? ""}:${result.message ?? ""}`;
-      lastNotifiedValidationKeyRef.current = key;
-      skipNextValidationNotifyRef.current = true;
-      onValidationChange?.(result);
+      notifyValidation(result, { force: true });
 
       return result;
     },
@@ -408,7 +455,7 @@ export function useDateTimeRangeController(props: DateTimeRangeProps) {
       endFieldName,
       fillRequired,
       locale,
-      onValidationChange,
+      notifyValidation,
       rangeOrderValid,
       startFieldName,
       validationRules,
@@ -449,5 +496,8 @@ export function useDateTimeRangeController(props: DateTimeRangeProps) {
     startProps,
     endProps,
     validateFields,
+    rangeContainerRef,
+    handlePickerClose,
+    handlePickerOpen,
   };
 }

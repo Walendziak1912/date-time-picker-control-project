@@ -19,6 +19,11 @@ export {
   resolveRangeFieldErrors,
   VALID_FIELD,
 } from './validationUtils'
+export {
+  notifyValidationIfChanged,
+  shouldShowValidationOnBlur,
+  validationResultKey,
+} from './validationNotify'
 export { resolveFieldLabel, resolveRangeLocaleText } from './rangeLocaleText'
 export {
   DEFAULT_PRESET_OPTIONS,
