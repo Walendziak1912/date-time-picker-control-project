@@ -668,6 +668,17 @@ export function useDateTimePickerController({
     return lastValidationRef.current
   }, [commitField, fieldError, focused, formattedValue, inputText])
 
+  //resetuje wewnętrzny stan walidacji pola (np. po udanym zapisie formularza),
+  //aby wyczyszczona kontrolka nie pozostawała oznaczona jako błędna
+  const reset = useCallback(() => {
+    setFieldError(false)
+    setFocused(false)
+    setInputText('')
+    lastValidationRef.current = { valid: true }
+    onValidationChange?.({ valid: true })
+  }, [onValidationChange])
+
+
   return {
     rootRef,
     inputRef,
@@ -721,8 +732,10 @@ export function useDateTimePickerController({
     showPrecisionSwitcher,
     handlePrecisionChange,
     validate,
+    reset,
   }
 }
+
 
 export type DateTimePickerController = ReturnType<typeof useDateTimePickerController>
 

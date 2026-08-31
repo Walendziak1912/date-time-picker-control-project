@@ -85,6 +85,7 @@ export function DigitalClock({
 
   useEffect(() => {
     scrollToSelected(activeView)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeView, hours24, minutes, seconds, milliseconds])
 
   const to24Hour = (hourLabel: number, pm: boolean) => {

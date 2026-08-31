@@ -84,8 +84,8 @@ export function FormWithValidationExample() {
           <DateTimeRange
             ref={rangeAllRef}
             dateTimePrecisions={[
-              DateTimePickerPrecision.DateTimeMilliseconds,
               DateTimePickerPrecision.Date,
+              DateTimePickerPrecision.DateTimeMilliseconds,
             ]}
             value={rangeAll}
             onChange={(next, context) => {

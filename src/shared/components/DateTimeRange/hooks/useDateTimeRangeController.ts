@@ -464,6 +464,15 @@ export function useDateTimeRangeController(props: DateTimeRangeProps) {
     ],
   );
 
+  const resetValidation = useCallback(() => {
+    setShowValidation(false);
+    setStartFieldValidation(VALID_FIELD);
+    setEndFieldValidation(VALID_FIELD);
+    lastNotifiedValidationKeyRef.current = null;
+    onValidationChange?.({ valid: true });
+  }, [onValidationChange]);
+
+
   return {
     value,
     hasError,
@@ -496,8 +505,11 @@ export function useDateTimeRangeController(props: DateTimeRangeProps) {
     startProps,
     endProps,
     validateFields,
+    resetValidation,
     rangeContainerRef,
     handlePickerClose,
     handlePickerOpen,
   };
 }
+
+

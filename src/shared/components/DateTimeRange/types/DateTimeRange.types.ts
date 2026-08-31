@@ -71,6 +71,7 @@ export type DateTimeRangeFieldValidation = {
 
 export type DateTimeRangeHandle = {
   validate: () => DateTimeRangeValidationResult;
+  reset: () => void;
 };
 
 export type DateTimeRangeLimits = {

@@ -51,6 +51,7 @@ export type DateTimeValidationResult = {
 
 export type DateTimePickerHandle = {
   validate: () => DateTimeValidationResult;
+  reset: () => void;
 };
 
 export type DateTimePickerProps = {

@@ -1,4 +1,3 @@
-import { createRef } from "react";
 import { describe, expect, test, vi } from "vitest";
 import {
   notifyValidationIfChanged,
@@ -20,8 +19,7 @@ describe("validationNotify", () => {
 
   test("notifyValidationIfChanged woła callback tylko przy zmianie wyniku", () => {
     const onValidationChange = vi.fn();
-    const lastKeyRef = createRef<string | null>();
-    lastKeyRef.current = null;
+    const lastKeyRef = { current: null as string | null };
 
     const invalid = {
       valid: false,
@@ -31,7 +29,6 @@ describe("validationNotify", () => {
 
     notifyValidationIfChanged(invalid, lastKeyRef, onValidationChange);
     notifyValidationIfChanged(invalid, lastKeyRef, onValidationChange);
-
     expect(onValidationChange).toHaveBeenCalledTimes(1);
     expect(onValidationChange).toHaveBeenCalledWith(invalid);
 
@@ -41,8 +38,7 @@ describe("validationNotify", () => {
 
   test("notifyValidationIfChanged z force=true woła callback ponownie dla tego samego wyniku", () => {
     const onValidationChange = vi.fn();
-    const lastKeyRef = createRef<string | null>();
-    lastKeyRef.current = null;
+    const lastKeyRef = { current: null as string | null };
 
     const invalid = {
       valid: false,
