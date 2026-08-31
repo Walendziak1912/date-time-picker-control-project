@@ -10,7 +10,8 @@
 .dtr-fields {
     display: flex;
     flex-wrap: wrap;
-    align-items: center;
+    align-items: flex-end;
+    align-items: last baseline;
     gap: 0.5rem 0.5rem;
     width: 100%;
 }
@@ -18,7 +19,8 @@
 .dtr--with-presets .dtr-fields,
 .dtr--with-flex-dates .dtr-fields {
     flex-wrap: nowrap;
-    align-items: center;
+    align-items: flex-end;
+    align-items: last baseline;
 }
 
 .dtr-presets,
@@ -52,7 +54,6 @@
 
 .dtr-separator {
     flex: 0 0 auto;
-    align-self: center;
     color: var(--dtp-muted, #6b7280);
     font-size: 0.875rem;
     line-height: 1;

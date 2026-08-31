@@ -11,6 +11,7 @@ import {
   SecondsRangeExample,
   TimeOnlyRangeExample,
 } from "./PrecisionVariantsExample";
+import { CustomLabelsExample, DefaultLabelsExample } from "./LabelsExample";
 import { FlexDatesExample, PresetsExample } from "./PresetsAndFlexExample";
 import { SimpleFormExample } from "./SimpleFormExample";
 
@@ -31,6 +32,12 @@ export const ExampleDateTimeRange: React.FC = () => (
       </div>
       <div className="col-12 lg:col-6">
         <SimpleFormExample />
+      </div>
+      <div className="col-12 lg:col-6">
+        <DefaultLabelsExample />
+      </div>
+      <div className="col-12 lg:col-6">
+        <CustomLabelsExample />
       </div>
       <div className="col-12 lg:col-6">
         <PrecisionSwitchExample />

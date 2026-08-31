@@ -1,5 +1,5 @@
 import { createRef } from "react";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { act, render, screen, fireEvent } from "@testing-library/react";
 import { vi } from "vitest";
 import {
     DateTimePicker,
@@ -247,9 +247,12 @@ describe("DateTimePicker", () => {
             />,
         );
 
-        const result = ref.current!.validate();
-        expect(result.valid).toBe(false);
-        expect(result.reason).toBe("date-required");
+        let result;
+        act(() => {
+            result = ref.current!.validate();
+        });
+        expect(result!.valid).toBe(false);
+        expect(result!.reason).toBe("date-required");
     });
 
     test("Imperatywne validate() przez ref zwraca valid dla poprawnej wartości", () => {
@@ -262,8 +265,11 @@ describe("DateTimePicker", () => {
             />,
         );
 
-        const result = ref.current!.validate();
-        expect(result.valid).toBe(true);
+        let result;
+        act(() => {
+            result = ref.current!.validate();
+        });
+        expect(result!.valid).toBe(true);
     });
 
     test("Wczytanie samego start z API generuje end przy akceptacji", () => {

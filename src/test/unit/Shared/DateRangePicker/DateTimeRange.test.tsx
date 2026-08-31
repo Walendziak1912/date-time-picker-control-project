@@ -1,5 +1,5 @@
 import { createRef } from "react";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { act, render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { vi } from "vitest";
 import {
   DateTimeRange,
@@ -125,9 +125,13 @@ describe("DateTimeRange", () => {
     fireEvent.change(startInput, { target: { value: "zła data" } });
     fireEvent.blur(startInput);
 
-    const result = ref.current!.validate();
-    expect(result.valid).toBe(false);
-    expect(result.reason).toBe("start-date-format");
+    let result;
+    act(() => {
+      result = ref.current!.validate();
+    });
+
+    expect(result!.valid).toBe(false);
+    expect(result!.reason).toBe("start-date-format");
     expect(onValidationChange).toHaveBeenLastCalledWith(
       expect.objectContaining({ valid: false, reason: "start-date-format" }),
     );
@@ -145,9 +149,13 @@ describe("DateTimeRange", () => {
       />,
     );
 
-    const result = ref.current!.validate();
-    expect(result.valid).toBe(false);
-    expect(result.reason).toBe("end-date-before-start-date");
+    let result;
+    act(() => {
+      result = ref.current!.validate();
+    });
+
+    expect(result!.valid).toBe(false);
+    expect(result!.reason).toBe("end-date-before-start-date");
     expect(onValidationChange).toHaveBeenLastCalledWith(
       expect.objectContaining({
         valid: false,
@@ -168,8 +176,12 @@ describe("DateTimeRange", () => {
       />,
     );
 
-    const result = ref.current!.validate();
-    expect(result.valid).toBe(true);
+    let result;
+    act(() => {
+      result = ref.current!.validate();
+    });
+
+    expect(result!.valid).toBe(true);
     expect(onValidationChange).toHaveBeenLastCalledWith(
       expect.objectContaining({ valid: true }),
     );
@@ -189,10 +201,14 @@ describe("DateTimeRange", () => {
       />,
     );
 
-    const result = ref.current!.validate();
-    expect(result.valid).toBe(false);
-    expect(result.reason).toBe("both-dates-required");
-    expect(result.message).toBe("Wybierz obie daty");
+    let result;
+    act(() => {
+      result = ref.current!.validate();
+    });
+
+    expect(result!.valid).toBe(false);
+    expect(result!.reason).toBe("both-dates-required");
+    expect(result!.message).toBe("Wybierz obie daty");
     expect(onValidationChange).toHaveBeenCalledTimes(1);
     expect(onValidationChange).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -202,7 +218,9 @@ describe("DateTimeRange", () => {
       }),
     );
 
-    ref.current!.validate();
+    act(() => {
+      ref.current!.validate();
+    });
     expect(onValidationChange).toHaveBeenCalledTimes(2);
   });
 

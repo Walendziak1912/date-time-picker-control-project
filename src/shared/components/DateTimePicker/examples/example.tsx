@@ -1,5 +1,6 @@
 import { BackendIntegrationExample } from "./BackendIntegrationExample";
 import { FormWithValidationExample } from "./FormWithValidationExample";
+import { LabelExample } from "./LabelsExample";
 import {
   ControlledPrecisionExample,
   PrecisionDropdownExample,
@@ -40,6 +41,9 @@ export const ExampleDateTimePicker: React.FC = () => (
       </div>
       <div className="col-12 lg:col-6">
         <ControlledPrecisionExample />
+      </div>
+      <div className="col-12 lg:col-6">
+        <LabelExample />
       </div>
       <div className="col-12 lg:col-6">
         <DateTimeExample />
