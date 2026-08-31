@@ -9,8 +9,8 @@ import {
   getSeconds,
   getYear,
   startOfDayTz,
-  type DateTimePickerTimezone,
-} from "../../DateTimePicker";
+} from "../../DateTimePicker/repository";
+import type { DateTimePickerTimezone } from "../../DateTimePicker/types/DateTimePicker.types";
 import {
   normalizeLocale,
   type SupportedLocale,

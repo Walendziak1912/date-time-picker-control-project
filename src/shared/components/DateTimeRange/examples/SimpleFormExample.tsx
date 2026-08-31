@@ -4,30 +4,19 @@ import { toast } from "react-toastify";
 import {
   DateTimePickerPrecision,
   FillRequired,
-  type DateTimePickerPrecisionValue,
+  serializeBackendRange,
 } from "../../DateTimePicker";
 import { DateTimeRange } from "../../DateTimeRange";
 import type { DateTimeRangeValue } from "../types";
-import { serializeBackendRange } from "../../../utils/dateUtils";
 
 export function SimpleFormExample() {
   const [range, setRange] = useState<DateTimeRangeValue>({
     start: null,
     end: null,
   });
-  const [precision, setPrecision] = useState<DateTimePickerPrecisionValue>(
-    DateTimePickerPrecision.Date,
-  );
 
   const handleSave = () => {
-    const payload =
-      range.start && range.end
-        ? serializeBackendRange({
-            start: range.start,
-            end: range.end,
-            precision,
-          })
-        : null;
+    const payload = serializeBackendRange(range);
 
     toast.success(`Zapisano: ${payload ?? " -"}`);
   };
@@ -55,12 +44,7 @@ export function SimpleFormExample() {
               DateTimePickerPrecision.DateTimeMilliseconds,
             ]}
             value={range}
-            onChange={(next, context) => {
-              setRange(next);
-              if (context.change.precision) {
-                setPrecision(context.change.precision);
-              }
-            }}
+            onChange={setRange}
             onValidationChange={(result) => {
               if (!result.valid && result.message) {
                 toast.error(result.message);
@@ -84,13 +68,7 @@ export function SimpleFormExample() {
       <p className="m-0 text-sm">
         Payload API:{" "}
         <code>
-          {range.start && range.end
-            ? serializeBackendRange({
-                start: range.start,
-                end: range.end,
-                precision,
-              })
-            : "null"}
+          {serializeBackendRange(range) ?? "null"}
         </code>
       </p>
     </div>

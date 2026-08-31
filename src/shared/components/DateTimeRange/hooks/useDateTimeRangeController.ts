@@ -9,13 +9,9 @@ import {
 import type {
   DateTimeChangeContext,
   DateTimeValidationResult,
-} from "../../DateTimePicker";
+} from "../../DateTimePicker/types";
 import { FillRequired } from "../../DateTimePicker/types/validation.types";
-import {
-  endOfDayTz,
-  nowInTimezone,
-  startOfDayTz,
-} from "../../DateTimePicker/repository";
+import { resolveFullBoundsFields } from "../../DateTimePicker/repository";
 import { resolveDateTimePickerPrecision } from "../../DateTimePicker/types/precision.types";
 import {
   normalizeDateTimePrecisions,
@@ -54,7 +50,6 @@ export function useDateTimeRangeController(props: DateTimeRangeProps) {
     onAccept,
     mode: modeProp,
     dateTimePrecisions,
-    dateTimePrecision,
     selectedDateTimePrecision: selectedDateTimePrecisionProp,
     onDateTimePrecisionChange,
     timezone = "UTC",
@@ -76,19 +71,17 @@ export function useDateTimeRangeController(props: DateTimeRangeProps) {
     startProps,
     endProps,
     error: errorProp = false,
-    helperText,
     onValidationChange,
     showFlexDates = false,
     flexibility: flexibilityProp,
     defaultFlexibility = 0,
-    useEndOfDayAsRangeEnd = true,
     fillRequired = FillRequired.None,
     validationRules,
   } = props;
 
   const availablePrecisions = useMemo(
-    () => normalizeDateTimePrecisions(dateTimePrecisions ?? dateTimePrecision),
-    [dateTimePrecisions, dateTimePrecision],
+    () => normalizeDateTimePrecisions(dateTimePrecisions),
+    [dateTimePrecisions],
   );
   const defaultPrecision = availablePrecisions[0] ?? null;
   const isPrecisionControlled = selectedDateTimePrecisionProp !== undefined;
@@ -222,9 +215,30 @@ export function useDateTimeRangeController(props: DateTimeRangeProps) {
     [defaultFlexibility, flexibilityProp, mode, rangeLimits, showFlexDates],
   );
 
+  const applyBoundsToRange = useCallback(
+    (nextValue: DateTimeRangeValue): DateTimeRangeValue => {
+      if (activePrecision == null) {
+        return nextValue;
+      }
+
+      const { start, end, flexibility } = nextValue;
+      const bounded = resolveFullBoundsFields({
+        start,
+        end,
+        precision: activePrecision,
+      });
+
+      return {
+        ...bounded,
+        ...(flexibility !== undefined ? { flexibility } : {}),
+      };
+    },
+    [activePrecision],
+  );
+
   const commitValue = useCallback(
     (nextValue: typeof value, context: DateTimeRangeChangeContext) => {
-      const resolved = resolveFlexRange(nextValue);
+      const resolved = applyBoundsToRange(resolveFlexRange(nextValue));
 
       if (!isControlled) {
         setInternalValue(resolved);
@@ -232,7 +246,7 @@ export function useDateTimeRangeController(props: DateTimeRangeProps) {
 
       onChange?.(resolved, context);
     },
-    [isControlled, onChange, resolveFlexRange],
+    [applyBoundsToRange, isControlled, onChange, resolveFlexRange],
   );
 
   const handleDateTimePrecisionChange = useCallback(
@@ -244,11 +258,7 @@ export function useDateTimeRangeController(props: DateTimeRangeProps) {
       }
       onDateTimePrecisionChange?.(nextPrecision);
 
-      if (
-        !useEndOfDayAsRangeEnd ||
-        previousPrecision == null ||
-        previousPrecision === nextPrecision
-      ) {
+      if (previousPrecision == null || previousPrecision === nextPrecision) {
         return;
       }
 
@@ -258,17 +268,24 @@ export function useDateTimeRangeController(props: DateTimeRangeProps) {
         return;
       }
 
-      const fallback = nowInTimezone(timezone);
-      const startRef = value.start ?? value.end ?? fallback;
-      const endRef = value.end ?? value.start ?? fallback;
+      const resolved = resolveFlexRange(value);
+      const bounded = resolveFullBoundsFields({
+        start: resolved.start,
+        end: resolved.end,
+        precision: nextPrecision,
+      });
       const nextRange = {
-        ...value,
-        start: startOfDayTz(startRef, timezone),
-        end: endOfDayTz(endRef, timezone),
+        ...bounded,
+        ...(resolved.flexibility !== undefined
+          ? { flexibility: resolved.flexibility }
+          : {}),
       };
 
       queueMicrotask(() => {
-        commitValue(nextRange, {
+        if (!isControlled) {
+          setInternalValue(nextRange);
+        }
+        onChange?.(nextRange, {
           source: "start",
           change: { source: "view", precision: nextPrecision },
         });
@@ -276,47 +293,63 @@ export function useDateTimeRangeController(props: DateTimeRangeProps) {
     },
     [
       activePrecision,
-      commitValue,
-      useEndOfDayAsRangeEnd,
+      isControlled,
       isPrecisionControlled,
+      onChange,
       onDateTimePrecisionChange,
-      timezone,
+      resolveFlexRange,
       value,
     ],
   );
 
   const handleStartChange = useCallback(
-    (nextStart: Date | null, change: DateTimeChangeContext) => {
-      commitValue({ ...value, start: nextStart }, { source: "start", change });
+    (nextStart: Date | null, _change: DateTimeChangeContext) => {
+      const nextRange = { ...value, start: nextStart };
+      if (!isControlled) {
+        setInternalValue(nextRange);
+      }
     },
-    [commitValue, value],
+    [isControlled, value],
   );
 
   const handleEndChange = useCallback(
-    (nextEnd: Date | null, change: DateTimeChangeContext) => {
-      commitValue({ ...value, end: nextEnd }, { source: "end", change });
+    (nextEnd: Date | null, _change: DateTimeChangeContext) => {
+      const nextRange = { ...value, end: nextEnd };
+      if (!isControlled) {
+        setInternalValue(nextRange);
+      }
     },
-    [commitValue, value],
+    [isControlled, value],
   );
 
   const handleStartAccept = useCallback(
     (nextStart: Date | null, change: DateTimeChangeContext) => {
-      onAccept?.(resolveFlexRange({ ...value, start: nextStart }), {
-        source: "start",
-        change,
-      });
+      const resolved = applyBoundsToRange(
+        resolveFlexRange({ ...value, start: nextStart }),
+      );
+
+      if (!isControlled) {
+        setInternalValue(resolved);
+      }
+      onChange?.(resolved, { source: "start", change });
+      onAccept?.(resolved, { source: "start", change });
     },
-    [onAccept, resolveFlexRange, value],
+    [applyBoundsToRange, isControlled, onAccept, onChange, resolveFlexRange, value],
   );
 
   const handleEndAccept = useCallback(
     (nextEnd: Date | null, change: DateTimeChangeContext) => {
-      onAccept?.(resolveFlexRange({ ...value, end: nextEnd }), {
-        source: "end",
-        change,
-      });
+      const resolved = applyBoundsToRange(
+        resolveFlexRange({ ...value, end: nextEnd }),
+      );
+
+      if (!isControlled) {
+        setInternalValue(resolved);
+      }
+      onChange?.(resolved, { source: "end", change });
+      onAccept?.(resolved, { source: "end", change });
     },
-    [onAccept, resolveFlexRange, value],
+    [applyBoundsToRange, isControlled, onAccept, onChange, resolveFlexRange, value],
   );
 
   const handleStartValidationChange = useCallback(
@@ -476,7 +509,6 @@ export function useDateTimeRangeController(props: DateTimeRangeProps) {
   return {
     value,
     hasError,
-    helperText,
     validationResult,
     startConstraints,
     endConstraints,

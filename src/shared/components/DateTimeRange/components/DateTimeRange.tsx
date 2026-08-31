@@ -1,4 +1,5 @@
-import { DateTimePicker, type DateTimePickerHandle } from "../../DateTimePicker";
+import { DateTimePickerField } from "../../DateTimePicker/components/DateTimePickerField";
+import type { DateTimePickerFieldProps, DateTimePickerHandle } from "../../DateTimePicker/types";
 import { resolveRangeFieldErrors } from "../repository";
 import { useDateTimeRangeController, useDateTimeRangeFlexDates, useDateTimeRangePresets } from "../hooks";
 import type { DateTimeRangeFlexibility, DateTimeRangeHandle, DateTimeRangePresetKey, DateTimeRangeProps } from "../types";
@@ -53,7 +54,6 @@ export const DateTimeRange = forwardRef<DateTimeRangeHandle, DateTimeRangeProps>
         flexDatesClassName,
         timezone = "UTC",
         rangeLocaleText,
-        useEndOfDayAsRangeEnd,
         fillRequired,
         validationRules,
         ...pickerProps
@@ -89,7 +89,6 @@ export const DateTimeRange = forwardRef<DateTimeRangeHandle, DateTimeRangeProps>
         flexibility,
         defaultFlexibility,
         timezone,
-        useEndOfDayAsRangeEnd,
         fillRequired,
         validationRules,
         ...pickerProps,
@@ -183,7 +182,10 @@ export const DateTimeRange = forwardRef<DateTimeRangeHandle, DateTimeRangeProps>
 
     const rangeHelperText = helperText ?? (showTextUnderFieldWhenError && hasError && !validationResult.valid ? validationResult.message : undefined);
 
-    const sharedProps = {
+    const sharedProps: Omit<
+        DateTimePickerFieldProps,
+        "value" | "defaultValue" | "onChange" | "onAccept"
+    > = {
         disabled,
         readOnly,
         showTextUnderFieldWhenError,
@@ -239,7 +241,7 @@ export const DateTimeRange = forwardRef<DateTimeRangeHandle, DateTimeRangeProps>
             data-testid="datetime-range"
         >
             <div className="dtr-fields">
-                <DateTimePicker
+                <DateTimePickerField
                     ref={startPickerRef}
                     {...sharedProps}
                     {...startProps}
@@ -268,7 +270,7 @@ export const DateTimeRange = forwardRef<DateTimeRangeHandle, DateTimeRangeProps>
                     </span>
                 )}
 
-                <DateTimePicker
+                <DateTimePickerField
                     ref={endPickerRef}
                     {...sharedProps}
                     {...endProps}

@@ -22,13 +22,18 @@ import {
   withoutSecondsTz,
   withoutMillisecondsTz,
   nowInTimezone,
+  EMPTY_DATE_BOUNDS_RANGE,
+  resolveFullBoundsForSingleDate,
+  toDisplayDate,
+  type DateBoundsRange,
 } from '../repository'
 import { resolveValidationMessage } from '../repository/validationRules'
 import { FillRequired } from '../types/validation.types'
 import type {
   DateDisableConstraints,
+  DateTimeChangeContext,
+  DateTimePickerFieldProps,
   DateTimePickerProps,
-  DateTimePickerView,
   DateTimeValidationResult,
   TimeDisableConstraints,
 } from '../types'
@@ -40,58 +45,64 @@ import {
   type DateTimePickerPrecisionValue,
 } from '../types/precision.types'
 
-export function useDateTimePickerController({
-  value: valueProp,
-  defaultValue = null,
-  referenceDate,
-  onChange,
-  onAccept,
-  open: openProp,
-  onOpen,
-  onClose,
-  disabled = false,
-  readOnly = false,
-  ampm = false,
-  format: formatProp,
-  mode: modeProp,
-  dateTimePrecisions,
-  dateTimePrecision,
-  selectedDateTimePrecision: selectedDateTimePrecisionProp,
-  onDateTimePrecisionChange,
-  timezone = 'UTC',
-  closeOnSelect = false,
-  minDate,
-  maxDate,
-  minTime,
-  maxTime,
-  minDateTime,
-  maxDateTime,
-  disablePast = false,
-  disableFuture = false,
-  minutesStep = 1,
-  showSeconds: showSecondsProp,
-  secondsStep = 1,
-  showMilliseconds: showMillisecondsProp,
-  millisecondsStep = 1,
-  timeSteps,
-  shouldDisableDate,
-  shouldDisableMonth,
-  shouldDisableYear,
-  shouldDisableTime,
-  views = ['year', 'month', 'day', 'hours', 'minutes'],
-  openTo,
-  onMonthChange,
-  locale = 'pl-PL',
-  localeText: localeTextProp,
-  error: errorProp = false,
-  helperText,
-  onValidationChange,
-  fillRequired = FillRequired.None,
-  validationRules,
-}: DateTimePickerProps) {
+export type PickerControllerOutput = 'bounds' | 'instant'
+
+export function useDateTimePickerController(
+  props: DateTimePickerProps | DateTimePickerFieldProps,
+  output: PickerControllerOutput = 'bounds',
+) {
+  const {
+    value: valueProp,
+    defaultValue,
+    onChange,
+    onAccept,
+    open: openProp,
+    onOpen,
+    onClose,
+    disabled = false,
+    readOnly = false,
+    ampm = false,
+    format: formatProp,
+    mode: modeProp,
+    dateTimePrecisions,
+    selectedDateTimePrecision: selectedDateTimePrecisionProp,
+    onDateTimePrecisionChange,
+    timezone = 'UTC',
+    closeOnSelect = false,
+    minDate,
+    maxDate,
+    minTime,
+    maxTime,
+    minDateTime,
+    maxDateTime,
+    disablePast = false,
+    disableFuture = false,
+    minutesStep = 1,
+    showSeconds: showSecondsProp,
+    secondsStep = 1,
+    showMilliseconds: showMillisecondsProp,
+    millisecondsStep = 1,
+    timeSteps,
+    shouldDisableDate,
+    shouldDisableMonth,
+    shouldDisableYear,
+    shouldDisableTime,
+    views = ['year', 'month', 'day', 'hours', 'minutes'],
+    openTo,
+    onMonthChange,
+    locale = 'pl-PL',
+    localeText: localeTextProp,
+    error: errorProp = false,
+    helperText,
+    onValidationChange,
+    fillRequired = FillRequired.None,
+    validationRules,
+  } = props
+
+  const boundsOutput = output === 'bounds'
   const availablePrecisions = useMemo(
-    () => normalizeDateTimePrecisions(dateTimePrecisions ?? dateTimePrecision),
-    [dateTimePrecisions, dateTimePrecision],
+    () => normalizeDateTimePrecisions(dateTimePrecisions),
+    [dateTimePrecisions],
   )
   const defaultPrecision = availablePrecisions[0] ?? null
   const isPrecisionControlled = selectedDateTimePrecisionProp !== undefined
@@ -112,11 +123,31 @@ export function useDateTimePickerController({
 
   const isControlled = valueProp !== undefined
   const isOpenControlled = openProp !== undefined
-  const [internalValue, setInternalValue] = useState<Date | null>(defaultValue)
+
+  const resolvedDefaultBounds: DateBoundsRange = boundsOutput
+    ? ((defaultValue as DateBoundsRange | null | undefined) ?? EMPTY_DATE_BOUNDS_RANGE)
+    : EMPTY_DATE_BOUNDS_RANGE
+
+  const resolvedDefaultInstant: Date | null = boundsOutput
+    ? null
+    : ((defaultValue as Date | null | undefined) ?? null)
+
+  const [internalBounds, setInternalBounds] =
+    useState<DateBoundsRange>(resolvedDefaultBounds)
+  const [internalValue, setInternalValue] = useState<Date | null>(
+    resolvedDefaultInstant,
+  )
   const [internalOpen, setInternalOpen] = useState(false)
-  const [draft, setDraft] = useState<Date | null>(valueProp ?? defaultValue)
+
+  const value: Date | null = boundsOutput
+    ? toDisplayDate(isControlled ? valueProp : internalBounds)
+    : isControlled
+      ? ((valueProp as Date | null | undefined) ?? null)
+      : internalValue
+
+  const [draft, setDraft] = useState<Date | null>(value)
   const [month, setMonth] = useState<Date>(
-    () => valueProp ?? defaultValue ?? referenceDate ?? new Date(),
+    () => value ?? props.referenceDate ?? new Date(),
   )
   const [inputText, setInputText] = useState('')
   const [focused, setFocused] = useState(false)
@@ -127,7 +158,6 @@ export function useDateTimePickerController({
   const lastValidationRef = useRef<DateTimeValidationResult>({ valid: true })
   const labelId = useId()
 
-  const value = isControlled ? (valueProp ?? null) : internalValue
   const open = isOpenControlled ? Boolean(openProp) : internalOpen
   const resolvedShowMilliseconds =
     showMillisecondsProp ??
@@ -288,10 +318,10 @@ export function useDateTimePickerController({
     if (open && !prevOpenRef.current) {
       valueOnOpenRef.current = value ? new Date(value.getTime()) : null
       setDraft(value)
-      setMonth(value ?? referenceDate ?? new Date())
+      setMonth(value ?? props.referenceDate ?? new Date())
     }
     prevOpenRef.current = open
-  }, [open, referenceDate, value])
+  }, [open, props.referenceDate, value])
 
   useEffect(() => {
     if (!isControlled) return
@@ -313,7 +343,7 @@ export function useDateTimePickerController({
     reportValidation(true)
   }, [isControlled, value, formattedValue, reportValidation])
 
-  const emitChange = useCallback(
+  const emitInstantChange = useCallback(
     (
       next: Date | null,
       source: 'field' | 'view' | 'unknown',
@@ -321,9 +351,85 @@ export function useDateTimePickerController({
     ) => {
       const normalized = normalizeValue(next)
       if (!isControlled) setInternalValue(normalized)
-      onChange?.(normalized, { source, precision })
+      ;(onChange as ((value: Date | null, context: DateTimeChangeContext) => void) | undefined)?.(
+        normalized,
+        { source, precision },
+      )
     },
     [activePrecision, isControlled, normalizeValue, onChange],
+  )
+
+  const emitBoundsAccept = useCallback(
+    (
+      next: Date | null,
+      source: 'field' | 'view' | 'unknown',
+      precision: DateTimePickerPrecisionValue | null = activePrecision,
+    ) => {
+      const bounds =
+        next == null || precision == null
+          ? EMPTY_DATE_BOUNDS_RANGE
+          : resolveFullBoundsForSingleDate(next, precision)
+
+      if (!isControlled) {
+        setInternalBounds(bounds)
+      }
+
+      ;(onChange as ((value: DateBoundsRange, context: DateTimeChangeContext) => void) | undefined)?.(
+        bounds,
+        { source, precision },
+      )
+      ;(onAccept as ((value: DateBoundsRange, context: DateTimeChangeContext) => void) | undefined)?.(
+        bounds,
+        { source, precision },
+      )
+    },
+    [activePrecision, isControlled, onAccept, onChange],
+  )
+
+  const emitChange = useCallback(
+    (
+      next: Date | null,
+      source: 'field' | 'view' | 'unknown',
+      precision: DateTimePickerPrecisionValue | null = activePrecision,
+    ) => {
+      if (boundsOutput) {
+        return
+      }
+      emitInstantChange(next, source, precision)
+    },
+    [activePrecision, boundsOutput, emitInstantChange],
+  )
+
+  const emitAccept = useCallback(
+    (
+      next: Date | null,
+      source: 'field' | 'view' | 'unknown',
+      precision: DateTimePickerPrecisionValue | null = activePrecision,
+    ) => {
+      if (boundsOutput) {
+        emitBoundsAccept(next, source, precision)
+        return
+      }
+      const normalized = normalizeValue(next)
+      if (!isControlled) setInternalValue(normalized)
+      ;(onChange as ((value: Date | null, context: DateTimeChangeContext) => void) | undefined)?.(
+        normalized,
+        { source, precision },
+      )
+      ;(onAccept as ((value: Date | null, context: DateTimeChangeContext) => void) | undefined)?.(
+        normalized,
+        { source, precision },
+      )
+    },
+    [
+      activePrecision,
+      boundsOutput,
+      emitBoundsAccept,
+      isControlled,
+      normalizeValue,
+      onAccept,
+      onChange,
+    ],
   )
 
   const setOpenState = useCallback(
@@ -339,10 +445,6 @@ export function useDateTimePickerController({
     setOpenState(false)
   }, [setOpenState])
 
-  const handleDismiss = useCallback(() => {
-    closePopover()
-  }, [closePopover])
-
   const handleCancel = useCallback(() => {
     const previous = valueOnOpenRef.current
     setDraft(previous)
@@ -350,9 +452,11 @@ export function useDateTimePickerController({
       previous ? formatDateTime(previous, format, ampm, locale, timezone) : '',
     )
     setFieldError(false)
-    emitChange(previous, 'view')
+    if (!boundsOutput) {
+      emitChange(previous, 'view')
+    }
     closePopover()
-  }, [ampm, closePopover, emitChange, format, locale, timezone])
+  }, [ampm, boundsOutput, closePopover, emitChange, format, locale, timezone])
 
   const blurInput = useCallback(() => {
     inputRef.current?.blur()
@@ -362,12 +466,15 @@ export function useDateTimePickerController({
   const accept = useCallback(
     (next: Date | null, shouldClose: boolean) => {
       const normalized = applyValidValue(next)
-      emitChange(normalized, 'view')
-      onAccept?.(normalized, { source: 'view' })
+      emitAccept(normalized, 'view')
       if (shouldClose) closePopover()
     },
-    [applyValidValue, closePopover, emitChange, onAccept],
+    [applyValidValue, closePopover, emitAccept],
   )
+
+  const handleDismiss = useCallback(() => {
+    accept(draft, true)
+  }, [accept, draft])
 
   const handleOpen = useCallback(() => {
     if (disabled || readOnly) return
@@ -384,8 +491,7 @@ export function useDateTimePickerController({
         accept(next, true)
         return
       }
-      const normalized = applyValidValue(next)
-      emitChange(normalized, 'view')
+      applyValidValue(next)
     },
     [
       accept,
@@ -393,7 +499,6 @@ export function useDateTimePickerController({
       blurInput,
       closeOnSelect,
       draft,
-      emitChange,
       normalizeValue,
       showTime,
       timezone,
@@ -415,15 +520,13 @@ export function useDateTimePickerController({
       accept(next, true)
       return
     }
-    const normalized = applyValidValue(next)
-    emitChange(normalized, 'view')
+    applyValidValue(next)
   }, [
     accept,
     applyValidValue,
     blurInput,
     closeOnSelect,
     draft,
-    emitChange,
     normalizeValue,
     showTime,
     timezone,
@@ -439,9 +542,8 @@ export function useDateTimePickerController({
         return
       }
       applyValidValue(normalized)
-      emitChange(normalized, 'view')
     },
-    [accept, applyValidValue, blurInput, closeOnSelect, emitChange, normalizeValue],
+    [accept, applyValidValue, blurInput, closeOnSelect, normalizeValue],
   )
 
   const handleOk = useCallback(() => {
@@ -453,8 +555,7 @@ export function useDateTimePickerController({
       event.stopPropagation()
       setDraft(null)
       setInputText('')
-      emitChange(null, 'view')
-      onAccept?.(null, { source: 'view' })
+      emitAccept(null, 'view')
       if (dateRequired) {
         setFieldError(true)
         reportValidation(false, 'date-required')
@@ -463,7 +564,7 @@ export function useDateTimePickerController({
       setFieldError(false)
       reportValidation(true)
     },
-    [dateRequired, emitChange, onAccept, reportValidation],
+    [dateRequired, emitAccept, reportValidation],
   )
 
   const commitField = useCallback(
@@ -478,8 +579,7 @@ export function useDateTimePickerController({
         }
         setFieldError(false)
         setDraft(null)
-        emitChange(null, 'field')
-        onAccept?.(null, { source: 'field' })
+        emitAccept(null, 'field')
         setInputText('')
         reportValidation(true)
         return
@@ -492,17 +592,15 @@ export function useDateTimePickerController({
       const normalized = applyValidValue(parsed)
       setDraft(normalized)
       if (normalized) setMonth(normalized)
-      emitChange(normalized, 'field')
-      onAccept?.(normalized, { source: 'field' })
+      emitAccept(normalized, 'field')
     },
     [
       ampm,
       applyValidValue,
       dateRequired,
       disabled,
-      emitChange,
+      emitAccept,
       format,
-      onAccept,
       readOnly,
       reportValidation,
       timezone,
@@ -631,13 +729,23 @@ export function useDateTimePickerController({
           normalizedValue = withoutMillisecondsTz(normalizedValue, timezone)
         }
       }
-      emitChange(normalizedValue, 'view', nextPrecision)
+
+      if (boundsOutput) {
+        if (normalizedValue) {
+          emitBoundsAccept(normalizedValue, 'view', nextPrecision)
+        }
+        return
+      }
+
+      emitInstantChange(normalizedValue, 'view', nextPrecision)
     },
     [
       activePrecision,
       ampm,
+      boundsOutput,
       draft,
-      emitChange,
+      emitBoundsAccept,
+      emitInstantChange,
       formatProp,
       isPrecisionControlled,
       locale,
@@ -660,7 +768,7 @@ export function useDateTimePickerController({
   const fieldErrorMessage =
     helperText ?? (fieldError ? invalidFormatMessage : null)
 
-  const inputValue = focused || fieldError ? inputText : formattedValue
+  const inputValue = focused || fieldError || open ? inputText : formattedValue
   const inputSize = Math.max(inputValue.length, format.length, 1)
 
   const validate = useCallback((): DateTimeValidationResult => {
@@ -691,7 +799,6 @@ export function useDateTimePickerController({
     inputValue,
     inputSize,
     hasError,
-    fieldError,
     fieldErrorMessage,
     text,
     format,
@@ -738,5 +845,3 @@ export function useDateTimePickerController({
 
 
 export type DateTimePickerController = ReturnType<typeof useDateTimePickerController>
-
-export type DateTimePickerViewHandler = (view: DateTimePickerView) => void

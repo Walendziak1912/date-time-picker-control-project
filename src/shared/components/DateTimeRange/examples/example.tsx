@@ -4,7 +4,6 @@ import { FormWithValidationExample } from "./FormWithValidationExample";
 import {
   MultiPrecisionExample,
   PrecisionSwitchExample,
-  UseEndOfDayExample,
 } from "./PrecisionExamples";
 import {
   MaxRangeDaysExample,
@@ -35,9 +34,6 @@ export const ExampleDateTimeRange: React.FC = () => (
       </div>
       <div className="col-12 lg:col-6">
         <PrecisionSwitchExample />
-      </div>
-      <div className="col-12 lg:col-6">
-        <UseEndOfDayExample />
       </div>
       <div className="col-12 lg:col-6">
         <MultiPrecisionExample />

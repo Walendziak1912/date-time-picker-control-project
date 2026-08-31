@@ -2,11 +2,10 @@ import { useState } from "react";
 import { toast } from "react-toastify";
 import {
   DateTimePickerPrecision,
-  type DateTimePickerPrecisionValue,
+  serializeBackendRange,
 } from "../../DateTimePicker";
 import { DateTimeRange } from "../../DateTimeRange";
 import type { DateTimeRangeValue } from "../types";
-import { serializeBackendRange } from "../../../utils/dateUtils";
 
 function RangeExample({
   title,
@@ -23,11 +22,6 @@ function RangeExample({
     start: null,
     end: null,
   });
-  const [precision, setPrecision] = useState<DateTimePickerPrecisionValue>(
-    (Array.isArray(dateTimePrecisions)
-      ? dateTimePrecisions[0]
-      : dateTimePrecisions) ?? DateTimePickerPrecision.Date,
-  );
 
   return (
     <div className="flex flex-column gap-3 p-4 h-full border-1 surface-border border-round surface-card">
@@ -35,12 +29,7 @@ function RangeExample({
       <DateTimeRange
         dateTimePrecisions={dateTimePrecisions}
         value={range}
-        onChange={(next, context) => {
-          setRange(next);
-          if (context.change.precision) {
-            setPrecision(context.change.precision);
-          }
-        }}
+        onChange={setRange}
         onValidationChange={(result) => {
           if (!result.valid && result.message) {
             toast.error(result.message);
@@ -59,13 +48,7 @@ function RangeExample({
       <p className="m-0 text-sm">
         Payload API:{" "}
         <code>
-          {range.start && range.end
-            ? serializeBackendRange({
-                start: range.start,
-                end: range.end,
-                precision,
-              })
-            : "null"}
+          {serializeBackendRange(range) ?? "null"}
         </code>
       </p>
     </div>

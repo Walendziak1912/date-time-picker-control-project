@@ -17,6 +17,5 @@ export type {
   DateTimeRangeFlexOption,
   DateTimeRangeFlexPayload,
   DateTimeRangeProps,
-  DateTimeRangeConstraintMode,
   DateTimeRangeSharedConfig,
 } from './DateTimeRange.types'

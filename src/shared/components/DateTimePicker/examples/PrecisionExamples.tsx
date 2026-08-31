@@ -3,9 +3,10 @@ import { toast } from "react-toastify";
 import {
   DateTimePicker,
   DateTimePickerPrecision,
+  serializeBackendRange,
+  type DateBoundsRange,
   type DateTimePickerPrecisionValue,
 } from "../../DateTimePicker";
-import { serializeBackendRange } from "../../../utils/dateUtils";
 
 function PickerDemo({
   title,
@@ -20,27 +21,20 @@ function PickerDemo({
   selectedDateTimePrecision?: DateTimePickerPrecisionValue;
   onDateTimePrecisionChange?: (precision: DateTimePickerPrecisionValue) => void;
 }) {
-  const [value, setValue] = useState<Date | null>(null);
-  const [precision, setPrecision] = useState<DateTimePickerPrecisionValue>(
-    selectedDateTimePrecision ?? DateTimePickerPrecision.Date,
-  );
+  const [value, setValue] = useState<DateBoundsRange>({
+    start: null,
+    end: null,
+  });
 
   return (
     <div className="flex flex-column gap-3 p-4 h-full border-1 surface-border border-round surface-card">
       <h4 className="m-0">{title}</h4>
       <DateTimePicker
         dateTimePrecisions={dateTimePrecisions}
-        selectedDateTimePrecision={selectedDateTimePrecision ?? precision}
-        onDateTimePrecisionChange={
-          onDateTimePrecisionChange ?? ((next) => setPrecision(next))
-        }
+        selectedDateTimePrecision={selectedDateTimePrecision}
+        onDateTimePrecisionChange={onDateTimePrecisionChange}
         value={value}
-        onChange={(date, context) => {
-          setValue(date);
-          if (context.precision) {
-            setPrecision(context.precision);
-          }
-        }}
+        onChange={setValue}
         onValidationChange={(result) => {
           if (!result.valid && result.message) {
             toast.error(result.message);
@@ -49,12 +43,18 @@ function PickerDemo({
         showBorderFieldWhenError
       />
       <p className="m-0 text-sm">
-        Stan UI: <code>{value?.toISOString() ?? "null"}</code>
+        Stan UI:{" "}
+        <code>
+          {JSON.stringify({
+            start: value.start?.toISOString() ?? null,
+            end: value.end?.toISOString() ?? null,
+          })}
+        </code>
       </p>
       <p className="m-0 text-sm">
         Payload API:{" "}
         <code>
-          {value ? serializeBackendRange({ start: value, precision }) : "null"}
+          {serializeBackendRange(value) ?? "null"}
         </code>
       </p>
     </div>

@@ -1,11 +1,10 @@
 import { describe, expect, test } from "vitest";
-import { parseBackendUtc, serializeBackendUtc, startOfDayTz, endOfDayTz, createInstant } from "../../../../shared/components/DateTimePicker";
+import { createInstant } from "../../../../shared/components/DateTimePicker/repository";
 import { formatDateTime, parseDateTime, defaultFormat, isDateDisabled, snapToStep } from "../../../../shared/components/DateTimePicker/repository/dateUtils";
 import {
     resolveDateTimePickerPrecision,
     normalizeDateTimePrecisions,
     adjustValueForPrecisionChange,
-    getDefaultPrecisionLabel,
     DateTimePickerPrecision,
 } from "../../../../shared/components/DateTimePicker/types/precision.types";
 

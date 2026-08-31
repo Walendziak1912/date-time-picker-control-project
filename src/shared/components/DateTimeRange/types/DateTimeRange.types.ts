@@ -10,12 +10,13 @@ import type {
   DateTimePickerLocaleText,
   DateTimePickerMode,
   DateTimePickerProps,
+  DateTimePickerFieldProps,
   DateTimePickerTimezone,
   DateTimeValidationResult,
-  SupportedLocale,
   TimePickerVariant,
   TimeSteps,
-} from "../../DateTimePicker";
+} from "../../DateTimePicker/types";
+import type { SupportedLocale } from "../../DateTimePicker/types/locale.types";
 import type { DateTimeRangeLocaleText } from "./rangeLocaleText.types";
 
 export type DateTimeRangeFlexibility = 0 | 1 | 2 | 3 | 7;
@@ -90,7 +91,6 @@ type SharedPickerProps = Pick<
   | "format"
   | "mode"
   | "dateTimePrecisions"
-  | "dateTimePrecision"
   | "selectedDateTimePrecision"
   | "onDateTimePrecisionChange"
   | "timezone"
@@ -157,8 +157,8 @@ export type DateTimeRangeProps = SharedPickerProps & {
   //Domyślnie false. Gdy true, maxRangeDays/maxRangeMonths liczone są od dokładnego
   //momentu startu (np. 28.07.2026 14:00 + 2 dni = 30.07.2026 14:00)
   precision?: boolean;
-  startProps?: Partial<DateTimePickerProps>;
-  endProps?: Partial<DateTimePickerProps>;
+  startProps?: Partial<DateTimePickerFieldProps>;
+  endProps?: Partial<DateTimePickerFieldProps>;
   error?: boolean;
   helperText?: ReactNode;
   showTextUnderFieldWhenError?: boolean;
@@ -188,15 +188,10 @@ export type DateTimeRangeProps = SharedPickerProps & {
   flexDatesClassName?: string;
   //nadpisanie domyślnych etykiet zakresu
   rangeLocaleText?: DateTimeRangeLocaleText;
-  //false zachowanie z bieżącą godziną w polu końcowym domyślnie jest true, czyli zachowanie z końcem dnia w polu końcowym
-  useEndOfDayAsRangeEnd?: boolean;
-  //wymagalność uzupełnienia dat w zakresie. Domyślnie None
   fillRequired?: FillRequired;
   //nadpisanie komunikatów walidacji (klucz = kod błędu). Brak klucza = domyślny komunikat
   validationRules?: ValidationRules;
 };
-
-export type DateTimeRangeConstraintMode = DateTimePickerMode;
 
 export type DateTimeRangeSharedConfig = {
   mode: DateTimePickerMode;

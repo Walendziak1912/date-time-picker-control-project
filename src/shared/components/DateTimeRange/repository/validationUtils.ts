@@ -1,4 +1,4 @@
-import type { DateTimeValidationResult } from "../../DateTimePicker";
+import type { DateTimeValidationResult } from "../../DateTimePicker/types";
 import {
   isEndDateRequired,
   isStartDateRequired,

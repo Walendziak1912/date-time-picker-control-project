@@ -5,15 +5,16 @@ import {
   DateTimePicker,
   DateTimePickerPrecision,
   FillRequired,
+  serializeBackendRange,
+  type DateBoundsRange,
   type DateTimePickerHandle,
-  type DateTimePickerPrecisionValue,
 } from "../../DateTimePicker";
-import { serializeBackendRange } from "../../../utils/dateUtils";
 
 export function FormWithValidationExample() {
-  const [formDate, setFormDate] = useState<Date | null>(null);
-  const [formDatePrecision, setFormDatePrecision] =
-    useState<DateTimePickerPrecisionValue>(DateTimePickerPrecision.Date);
+  const [formDate, setFormDate] = useState<DateBoundsRange>({
+    start: null,
+    end: null,
+  });
   const formDateRef = useRef<DateTimePickerHandle>(null);
 
   const handleFormSave = () => {
@@ -22,9 +23,7 @@ export function FormWithValidationExample() {
       return;
     }
 
-    const payload = formDate
-      ? serializeBackendRange({ start: formDate, precision: formDatePrecision })
-      : null;
+    const payload = serializeBackendRange(formDate);
 
     toast.success(`Zapisano: ${payload ?? " -"}`);
   };
@@ -48,12 +47,7 @@ export function FormWithValidationExample() {
               DateTimePickerPrecision.DateTime,
             ]}
             value={formDate}
-            onChange={(date, context) => {
-              setFormDate(date);
-              if (context.precision) {
-                setFormDatePrecision(context.precision);
-              }
-            }}
+            onChange={setFormDate}
             onValidationChange={(result) => {
               if (!result.valid && result.message) {
                 toast.error(result.message);
@@ -70,17 +64,12 @@ export function FormWithValidationExample() {
         <Button type="submit" label="Zapisz" />
       </form>
       <p className="m-0 text-sm">
-        Stan UI: <code>{formDate?.toISOString() ?? "null"}</code>
-      </p>
-      <p className="m-0 text-sm">
-        Payload API:{" "}
+        Stan UI:{" "}
         <code>
-          {formDate
-            ? serializeBackendRange({
-                start: formDate,
-                precision: formDatePrecision,
-              })
-            : "null"}
+          {JSON.stringify({
+            start: formDate.start?.toISOString() ?? null,
+            end: formDate.end?.toISOString() ?? null,
+          })}
         </code>
       </p>
     </div>

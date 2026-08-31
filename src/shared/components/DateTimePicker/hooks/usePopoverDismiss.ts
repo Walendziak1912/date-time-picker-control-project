@@ -11,6 +11,7 @@ export function usePopoverDismiss(
   open: boolean,
   rootRef: RefObject<HTMLElement | null>,
   onDismiss: () => void,
+  onEscape?: () => void,
 ) {
   useEffect(() => {
     if (!open) return
@@ -22,7 +23,7 @@ export function usePopoverDismiss(
       onDismiss()
     }
     const onKeyDown = (event: globalThis.KeyboardEvent) => {
-      if (event.key === 'Escape') onDismiss()
+      if (event.key === 'Escape') (onEscape ?? onDismiss)()
     }
 
     document.addEventListener('pointerdown', onPointerDown)
@@ -31,5 +32,5 @@ export function usePopoverDismiss(
       document.removeEventListener('pointerdown', onPointerDown)
       document.removeEventListener('keydown', onKeyDown)
     }
-  }, [open, rootRef, onDismiss])
+  }, [open, onDismiss, onEscape, rootRef])
 }

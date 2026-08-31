@@ -1,9 +1,5 @@
-import {
-  getDate,
-  getMonth,
-  getYear,
-  type DateTimePickerTimezone,
-} from "../../DateTimePicker";
+import { getDate, getMonth, getYear } from "../../DateTimePicker/repository";
+import type { DateTimePickerTimezone } from "../../DateTimePicker/types/DateTimePicker.types";
 import {
   normalizeLocale,
   type SupportedLocale,

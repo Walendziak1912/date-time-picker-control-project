@@ -4,21 +4,16 @@ import { toast } from "react-toastify";
 import {
   DateTimePickerPrecision,
   FillRequired,
-  type DateTimePickerPrecisionValue,
+  serializeBackendRange,
 } from "../../DateTimePicker";
 import { DateTimeRange, type DateTimeRangeHandle } from "../../DateTimeRange";
 import type { DateTimeRangeValue } from "../types";
-import { serializeBackendRange } from "../../../utils/dateUtils";
 
 export function FormWithValidationExample() {
   const [rangeAll, setRangeAll] = useState<DateTimeRangeValue>({
     start: null,
     end: null,
   });
-  const [rangeAllPrecision, setRangeAllPrecision] =
-    useState<DateTimePickerPrecisionValue>(
-      DateTimePickerPrecision.DateTimeMilliseconds,
-    );
   const [rangeMaxDays, setRangeMaxDays] = useState<DateTimeRangeValue>({
     start: null,
     end: null,
@@ -57,14 +52,7 @@ export function FormWithValidationExample() {
       return;
     }
 
-    const payload =
-      rangeAll.start && rangeAll.end
-        ? serializeBackendRange({
-            start: rangeAll.start,
-            end: rangeAll.end,
-            precision: rangeAllPrecision,
-          })
-        : null;
+    const payload = serializeBackendRange(rangeAll);
 
     toast.success(`Zapisano: ${payload ?? " -"}`);
   };
@@ -88,12 +76,7 @@ export function FormWithValidationExample() {
               DateTimePickerPrecision.DateTimeMilliseconds,
             ]}
             value={rangeAll}
-            onChange={(next, context) => {
-              setRangeAll(next);
-              if (context.change.precision) {
-                setRangeAllPrecision(context.change.precision);
-              }
-            }}
+            onChange={setRangeAll}
             onValidationChange={onValidationError}
             showBorderFieldWhenError
             fillRequired={FillRequired.All}
@@ -116,6 +99,7 @@ export function FormWithValidationExample() {
             onValidationChange={onValidationError}
             showBorderFieldWhenError
             maxRangeDays={5}
+            fillRequired={FillRequired.All}
           />
         </div>
         <div className="flex flex-column gap-2 w-full">
@@ -154,15 +138,7 @@ export function FormWithValidationExample() {
       </p>
       <p className="m-0 text-sm">
         Payload API (rangeAll):{" "}
-        <code>
-          {rangeAll.start && rangeAll.end
-            ? serializeBackendRange({
-                start: rangeAll.start,
-                end: rangeAll.end,
-                precision: rangeAllPrecision,
-              })
-            : "null"}
-        </code>
+        <code>{serializeBackendRange(rangeAll) ?? "null"}</code>
       </p>
     </div>
   );

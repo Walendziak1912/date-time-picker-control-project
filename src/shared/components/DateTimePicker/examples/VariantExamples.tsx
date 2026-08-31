@@ -4,8 +4,10 @@ import {
   DateTimePicker,
   DateTimePickerPrecision,
   FillRequired,
+  type DateBoundsRange,
   type DateTimePickerPrecisionValue,
 } from "../../DateTimePicker";
+import type { DateTimeChangeContext } from "../../DateTimePicker/types";
 
 function PickerVariantExample({
   title,
@@ -22,7 +24,10 @@ function PickerVariantExample({
   fillRequired?: Parameters<typeof DateTimePicker>[0]["fillRequired"];
   timeVariant?: "digital" | "analog";
 }) {
-  const [value, setValue] = useState<Date | null>(null);
+  const [value, setValue] = useState<DateBoundsRange>({
+    start: null,
+    end: null,
+  });
   const [precision, setPrecision] = useState<DateTimePickerPrecisionValue>(
     (Array.isArray(dateTimePrecisions)
       ? dateTimePrecisions[0]
@@ -35,8 +40,8 @@ function PickerVariantExample({
       <DateTimePicker
         dateTimePrecisions={dateTimePrecisions}
         value={value}
-        onChange={(date, context) => {
-          setValue(date);
+        onChange={(next: DateBoundsRange, context: DateTimeChangeContext) => {
+          setValue(next);
           if (context.precision) {
             setPrecision(context.precision);
           }
@@ -59,7 +64,10 @@ function PickerVariantExample({
         }
       />
       <p className="m-0 text-sm">
-        Wartość: <code>{value?.toISOString() ?? "null"}</code>
+        Wartość start: <code>{value.start?.toISOString() ?? "null"}</code>
+      </p>
+      <p className="m-0 text-sm">
+        Wartość end: <code>{value.end?.toISOString() ?? "null"}</code>
       </p>
       <p className="m-0 text-sm">
         Precyzja: <code>{precision}</code>

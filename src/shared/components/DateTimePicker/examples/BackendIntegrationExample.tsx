@@ -4,35 +4,33 @@ import { toast } from "react-toastify";
 import {
   DateTimePicker,
   DateTimePickerPrecision,
-  type DateTimePickerPrecisionValue,
-} from "../../DateTimePicker";
-import {
   parseBackendRange,
   serializeBackendRange,
-} from "../../../utils/dateUtils";
+  type DateBoundsRange,
+} from "../../DateTimePicker";
 
 const BACKEND_DATE_SAMPLE =
   "2026-08-16T00:00:00.000Z , 2026-08-16T23:59:59.999Z";
 
 export function BackendIntegrationExample() {
   const [backendPayload, setBackendPayload] = useState(BACKEND_DATE_SAMPLE);
-  const [value, setValue] = useState<Date | null>(null);
-  const [precision, setPrecision] = useState<DateTimePickerPrecisionValue>(
-    DateTimePickerPrecision.Date,
-  );
+  const [value, setValue] = useState<DateBoundsRange>({
+    start: null,
+    end: null,
+  });
 
   const handleLoadFromBackend = () => {
-    const { start } = parseBackendRange(backendPayload);
-    setValue(start);
+    const { start, end } = parseBackendRange(backendPayload);
+    setValue({ start, end });
   };
 
   const handleSaveToBackend = () => {
-    if (!value) {
+    const payload = serializeBackendRange(value);
+    if (!payload) {
       toast.error("Wybierz datę przed zapisem");
       return;
     }
 
-    const payload = serializeBackendRange({ start: value, precision });
     setBackendPayload(payload);
     toast.success(`Zapisano: ${payload}`);
   };
@@ -41,9 +39,9 @@ export function BackendIntegrationExample() {
     <div className="flex flex-column gap-3 p-4 h-full border-1 surface-border border-round surface-card">
       <h4 className="m-0">Wczytanie i zapis daty z backendu</h4>
       <p className="m-0 text-color-secondary">
-        Backend dla operatora też zwraca zakres <code>start , end</code>. Przy
-        wczytywaniu używaj <code>start</code> z <code>parseBackendRange</code>, a
-        przy zapisie wołaj <code>serializeBackendRange</code>.
+        Komponent domyślnie zwraca pełny zakres <code>{"{ start, end }"}</code>.
+        Przy wczytywaniu używaj <code>parseBackendRange</code>, a przy zapisie
+        serializuj <code>start</code> i <code>end</code> ze stanu.
       </p>
       <div className="flex flex-wrap gap-2">
         <Button
@@ -64,28 +62,24 @@ export function BackendIntegrationExample() {
           DateTimePickerPrecision.TimeMilliseconds,
         ]}
         value={value}
-        onChange={(date, context) => {
-          setValue(date);
-          if (context.precision) {
-            setPrecision(context.precision);
-          }
-        }}
+        onChange={setValue}
         onValidationChange={(result) => {
           if (!result.valid && result.message) {
             toast.error(result.message);
           }
         }}
+        
       />
       <p className="m-0 text-sm">
         String z API: <code>{backendPayload}</code>
       </p>
       <p className="m-0 text-sm">
-        Stan UI: <code>{value?.toISOString() ?? "null"}</code>
-      </p>
-      <p className="m-0 text-sm">
-        Payload API:{" "}
+        Stan komponentu:{" "}
         <code>
-          {value ? serializeBackendRange({ start: value, precision }) : "null"}
+          {JSON.stringify({
+            start: value.start?.toISOString() ?? null,
+            end: value.end?.toISOString() ?? null,
+          })}
         </code>
       </p>
     </div>

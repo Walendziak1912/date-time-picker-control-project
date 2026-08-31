@@ -11,6 +11,7 @@ import type {
   DateTimePickerPrecisionValue,
   DateTimePrecisionsInput,
 } from "./precision.types";
+import type { DateBoundsRange } from "../repository/fullBounds";
 
 export type DateTimePickerTimezone = "UTC" | "system";
 
@@ -25,7 +26,6 @@ export type DateTimePickerView =
 
 export type TimePickerVariant = "digital" | "analog";
 
-//sama data, sam czas, lub domyślnie oba
 export type DateTimePickerMode = "date" | "time" | "datetime";
 
 export type TimeSteps = {
@@ -37,7 +37,6 @@ export type TimeSteps = {
 
 export type DateTimeChangeContext = {
   source: "field" | "view" | "unknown";
-  //aktywna precyzja
   precision?: DateTimePickerPrecisionValue | null;
 };
 
@@ -54,13 +53,10 @@ export type DateTimePickerHandle = {
   reset: () => void;
 };
 
-export type DateTimePickerProps = {
-  value?: Date | null;
-  defaultValue?: Date | null;
-  //miesiąc kalendarza przy otwarciu popovera, gdy value jest puste
+export type { DateBoundsRange };
+
+export type DateTimePickerSharedProps = {
   referenceDate?: Date | null;
-  onChange?: (value: Date | null, context: DateTimeChangeContext) => void;
-  onAccept?: (value: Date | null, context: DateTimeChangeContext) => void;
   open?: boolean;
   onOpen?: () => void;
   onClose?: () => void;
@@ -68,27 +64,12 @@ export type DateTimePickerProps = {
   name?: string;
   disabled?: boolean;
   readOnly?: boolean;
-  //12h
   ampm?: boolean;
-  //format tokeny yyyy MM dd HH hh mm ss a
   format?: string;
-  //"date" tylko kalendarz
-  //"time" tylko zegar
-  //"datetime" oba (domyślnie)
   mode?: DateTimePickerMode;
-  //Uproszczone sterowanie trybem wyświetlania (nadpisuje mode/showSeconds/showMilliseconds gdy te nie są podane)
-  //Przykład: dateTimePrecisions={DateTimePickerPrecision.DateTimeSeconds}
-  //Przykład wielu trybów: dateTimePrecisions={[DateTimePickerPrecision.Date, DateTimePickerPrecision.DateTime]}
   dateTimePrecisions?: DateTimePrecisionsInput;
-  /** @deprecated Użyj dateTimePrecisions */
-  dateTimePrecision?: DateTimePickerPrecisionValue;
-  //Aktywna precyzja (kontrolowana). Bez tego propsa komponent zarządza wyborem samodzielnie.
   selectedDateTimePrecision?: DateTimePickerPrecisionValue;
   onDateTimePrecisionChange?: (precision: DateTimePickerPrecisionValue) => void;
-  // timezone - strefa wyświetlania/edycji jak "timezone" w MUI X
-  //"UTC" (domyślnie) kalendarz i zegar w UTC
-  //"system" kalendarz i zegar w strefie lokalnej użytkownika
-  //value/onChange zawsze operują na instant (timestamp) "timezone" wpływa tylko na render
   timezone?: DateTimePickerTimezone;
   closeOnSelect?: boolean;
   minDate?: Date;
@@ -99,22 +80,15 @@ export type DateTimePickerProps = {
   maxDateTime?: Date;
   disablePast?: boolean;
   disableFuture?: boolean;
-  //skok minut w wyborze czasu domyślnie 1 (np. 1, 5, 15)
   minutesStep?: number;
-  //włącza wybór sekund format "ss" na kolumna/tarcza Domyślnie na false
   showSeconds?: boolean;
-  //skok sekund w wyborze czasu domyślnie 1 (timeSteps.seconds ma pierwszeństwo)
   secondsStep?: number;
-  //włącza wybór milisekund format "SSS" na kolumna/tarcza Domyślnie na false
   showMilliseconds?: boolean;
-  //skok milisekund w wyborze czasu domyślnie 1 (timeSteps.milliseconds ma pierwszeństwo)
   millisecondsStep?: number;
-  //alternatywnie: timeSteps.minutes nadpisuje minutesStep
   timeSteps?: TimeSteps;
   shouldDisableDate?: (day: Date) => boolean;
   shouldDisableMonth?: (month: Date) => boolean;
   shouldDisableYear?: (year: Date) => boolean;
-  //włącza wyłączenie wybranego czasu
   shouldDisableTime?: (
     value: Date,
     view: "hours" | "minutes" | "seconds" | "milliseconds",
@@ -129,24 +103,29 @@ export type DateTimePickerProps = {
   yearsOrder?: "asc" | "desc";
   yearsPerRow?: 3 | 4;
   monthsPerRow?: 3 | 4;
-  //analog (default) or digital clock
   timeVariant?: TimePickerVariant;
   className?: string;
   locale?: SupportedLocale;
-  //nadpisanie domyślnych etykiet
   localeText?: DateTimePickerLocaleText;
-  //błąd z formularza (aria-invalid + helperText) Czerwona ramka tylko gdy "showBorderFieldWhenError"
   error?: boolean;
-  //komunikat pod polem; domyślnie tekst błędu formatu z localeText
   helperText?: ReactNode;
-  //tekst błędu pod polem. Domyślnie false (np. Toast u rodzica)
   showTextUnderFieldWhenError?: boolean;
-  //czerwona obwódka pola przy błędzie. Domyślnie false
   showBorderFieldWhenError?: boolean;
-  //raport walidacji pola tekstowego np. Toast u rodzica
   onValidationChange?: (result: DateTimeValidationResult) => void;
-  //wymagalność uzupełnienia daty. Domyślnie None (data opcjonalna)
   fillRequired?: FillRequired;
-  //nadpisanie komunikatów walidacji (klucz = kod błędu). Brak klucza = domyślny komunikat
   validationRules?: ValidationRules;
+};
+
+export type DateTimePickerProps = DateTimePickerSharedProps & {
+  value?: DateBoundsRange;
+  defaultValue?: DateBoundsRange;
+  onChange?: (value: DateBoundsRange, context: DateTimeChangeContext) => void;
+  onAccept?: (value: DateBoundsRange, context: DateTimeChangeContext) => void;
+};
+
+export type DateTimePickerFieldProps = DateTimePickerSharedProps & {
+  value?: Date | null;
+  defaultValue?: Date | null;
+  onChange?: (value: Date | null, context: DateTimeChangeContext) => void;
+  onAccept?: (value: Date | null, context: DateTimeChangeContext) => void;
 };
