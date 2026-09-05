@@ -19,6 +19,7 @@ import {
   resolvePickerSections,
   setDatePartTz,
   startOfDayTz,
+  endOfDayTz,
   withoutSecondsTz,
   withoutMillisecondsTz,
   nowInTimezone,
@@ -68,6 +69,7 @@ export function useDateTimePickerController(
     selectedDateTimePrecision: selectedDateTimePrecisionProp,
     onDateTimePrecisionChange,
     timezone = 'UTC',
+    daySelectBound,
     closeOnSelect = false,
     minDate,
     maxDate,
@@ -97,8 +99,10 @@ export function useDateTimePickerController(
     onValidationChange,
     fillRequired = FillRequired.None,
     validationRules,
+    validationMode = 'submit',
   } = props
 
+  const validateOnBlur = validationMode === 'blur'
   const boundsOutput = output === 'bounds'
   const availablePrecisions = useMemo(
     () => normalizeDateTimePrecisions(dateTimePrecisions),
@@ -482,10 +486,22 @@ export function useDateTimePickerController(
     setOpenState(true)
   }, [blurInput, disabled, readOnly, setOpenState])
 
+  const applyDaySelectTimeDefault = useCallback(
+    (date: Date): Date => {
+      if (!showTime || daySelectBound == null) return date
+      return daySelectBound === 'end'
+        ? endOfDayTz(date, timezone)
+        : startOfDayTz(date, timezone)
+    },
+    [daySelectBound, showTime, timezone],
+  )
+
   const handleSelectDay = useCallback(
     (day: Date) => {
       blurInput()
-      const next = normalizeValue(setDatePartTz(draft, day, timezone))
+      const next = normalizeValue(
+        applyDaySelectTimeDefault(setDatePartTz(draft, day, timezone)),
+      )
       setDraft(next)
       if (!showTime && closeOnSelect) {
         accept(next, true)
@@ -495,6 +511,7 @@ export function useDateTimePickerController(
     },
     [
       accept,
+      applyDaySelectTimeDefault,
       applyValidValue,
       blurInput,
       closeOnSelect,
@@ -506,13 +523,15 @@ export function useDateTimePickerController(
   )
 
   const todayDate = nowInTimezone(timezone)
-  const isTodayDisabled = isDateDisabled(todayDate, dateConstraints)
+  const isTodayDisabled = isDateDisabled(todayDate, dateConstraints, timezone)
 
   const handleToday = useCallback(() => {
     blurInput()
     const now = nowInTimezone(timezone)
     const next = showTime
-      ? normalizeValue(now)
+      ? normalizeValue(
+          daySelectBound === 'end' ? endOfDayTz(now, timezone) : now,
+        )
       : normalizeValue(setDatePartTz(draft, now, timezone))
     setMonth(now)
     setDraft(next)
@@ -526,6 +545,7 @@ export function useDateTimePickerController(
     applyValidValue,
     blurInput,
     closeOnSelect,
+    daySelectBound,
     draft,
     normalizeValue,
     showTime,
@@ -556,23 +576,26 @@ export function useDateTimePickerController(
       setDraft(null)
       setInputText('')
       emitAccept(null, 'view')
-      if (dateRequired) {
+      if (dateRequired && validateOnBlur) {
         setFieldError(true)
         reportValidation(false, 'date-required')
         return
       }
       setFieldError(false)
-      reportValidation(true)
+      if (validateOnBlur) {
+        reportValidation(true)
+      }
     },
-    [dateRequired, emitAccept, reportValidation],
+    [dateRequired, emitAccept, reportValidation, validateOnBlur],
   )
 
   const commitField = useCallback(
-    (fieldText: string) => {
+    (fieldText: string, options?: { forceValidation?: boolean }) => {
       if (readOnly || disabled) return
+      const shouldValidate = validateOnBlur || options?.forceValidation === true
       const parsed = parseDateTime(fieldText, format, ampm, timezone)
       if (fieldText.trim() === '') {
-        if (dateRequired) {
+        if (dateRequired && shouldValidate) {
           setFieldError(true)
           reportValidation(false, 'date-required')
           return
@@ -581,10 +604,17 @@ export function useDateTimePickerController(
         setDraft(null)
         emitAccept(null, 'field')
         setInputText('')
-        reportValidation(true)
+        if (shouldValidate) {
+          reportValidation(true)
+        }
         return
       }
       if (!parsed) {
+        if (!shouldValidate) {
+          setFieldError(false)
+          setInputText(formattedValue)
+          return
+        }
         setFieldError(true)
         reportValidation(false, 'date-format')
         return
@@ -601,9 +631,11 @@ export function useDateTimePickerController(
       disabled,
       emitAccept,
       format,
+      formattedValue,
       readOnly,
       reportValidation,
       timezone,
+      validateOnBlur,
     ],
   )
 
@@ -772,7 +804,9 @@ export function useDateTimePickerController(
   const inputSize = Math.max(inputValue.length, format.length, 1)
 
   const validate = useCallback((): DateTimeValidationResult => {
-    commitField(focused || fieldError ? inputText : formattedValue)
+    commitField(focused || fieldError ? inputText : formattedValue, {
+      forceValidation: true,
+    })
     return lastValidationRef.current
   }, [commitField, fieldError, focused, formattedValue, inputText])
 

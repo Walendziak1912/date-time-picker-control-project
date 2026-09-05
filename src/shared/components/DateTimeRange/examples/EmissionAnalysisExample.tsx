@@ -22,7 +22,7 @@ export function EmissionAnalysisExample() {
     <div className="flex flex-column gap-3 p-4 h-full border-1 surface-border border-round surface-card">
       <h4 className="m-0">Analiza do 48h wstecz od daty emisji</h4>
       <p className="m-0 text-color-secondary">
-        Data emisji: <code>{emissionDate.toISOString()}</code> — dozwolony
+        Data emisji: <code>{emissionDate.toISOString()}</code> - dozwolony
         zakres od <code>{emissionMinDateTime.toISOString()}</code> do{" "}
         <code>{emissionDate.toISOString()}</code>
       </p>

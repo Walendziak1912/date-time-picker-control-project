@@ -15,6 +15,8 @@ import type { DateBoundsRange } from "../repository/fullBounds";
 
 export type DateTimePickerTimezone = "UTC" | "system";
 
+export type DateTimeValidationMode = "submit" | "blur";
+
 export type DateTimePickerView =
   | "year"
   | "month"
@@ -71,6 +73,8 @@ export type DateTimePickerSharedProps = {
   selectedDateTimePrecision?: DateTimePickerPrecisionValue;
   onDateTimePrecisionChange?: (precision: DateTimePickerPrecisionValue) => void;
   timezone?: DateTimePickerTimezone;
+  /** Domyślny czas po wyborze dnia w kalendarzu: start → 00:00:00.000, end → 23:59:59.999 */
+  daySelectBound?: "start" | "end";
   closeOnSelect?: boolean;
   minDate?: Date;
   maxDate?: Date;
@@ -114,6 +118,8 @@ export type DateTimePickerSharedProps = {
   onValidationChange?: (result: DateTimeValidationResult) => void;
   fillRequired?: FillRequired;
   validationRules?: ValidationRules;
+  /** Domyślnie "submit" - błędy po ref.validate(). Ustaw "blur" dla walidacji po opuszczeniu pola. */
+  validationMode?: DateTimeValidationMode;
 };
 
 export type DateTimePickerProps = DateTimePickerSharedProps & {

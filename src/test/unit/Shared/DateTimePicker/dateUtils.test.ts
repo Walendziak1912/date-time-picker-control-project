@@ -87,6 +87,18 @@ describe("DateTimePicker repository isDateDisabled", () => {
         const max = new Date(2025, 0, 31);
         expect(isDateDisabled(new Date(2025, 0, 15), { minDate: min, maxDate: max })).toBe(false);
     });
+
+    test("Blokuje dzień po maxDateTime w strefie UTC", () => {
+        const maxDateTime = new Date(Date.UTC(2026, 8, 25, 23, 59, 59, 999));
+        const dayAfterMax = new Date(Date.UTC(2026, 8, 26, 0, 0, 0, 0));
+        expect(isDateDisabled(dayAfterMax, { maxDateTime }, "UTC")).toBe(true);
+    });
+
+    test("Nie blokuje ostatniego dnia maxDateTime w strefie UTC", () => {
+        const maxDateTime = new Date(Date.UTC(2026, 8, 25, 23, 59, 59, 999));
+        const lastAllowedDay = new Date(Date.UTC(2026, 8, 25, 0, 0, 0, 0));
+        expect(isDateDisabled(lastAllowedDay, { maxDateTime }, "UTC")).toBe(false);
+    });
 });
 
 describe("DateTimePicker repository snapToStep", () => {

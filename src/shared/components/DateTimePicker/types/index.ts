@@ -3,6 +3,7 @@ export type {
   TimePickerVariant,
   DateTimePickerMode,
   DateTimePickerTimezone,
+  DateTimeValidationMode,
   TimeSteps,
   DateTimeChangeContext,
   DateTimeValidationReason,

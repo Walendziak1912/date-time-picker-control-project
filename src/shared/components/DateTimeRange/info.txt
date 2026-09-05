@@ -1,0 +1,469 @@
+================================================================================
+  DateTimeRange - podsumowanie użycia i integracji z backendem
+================================================================================
+
+1. Czym jest kontrolka
+---------------------
+DateTimeRange to para pól start / end (DateTimePickerField) do wyboru zakresu
+dat lub daty z czasem. Współdzieli logikę z DateTimePicker (precyzja, strefa
+czasowa, walidacja, formatowanie).
+
+Import:
+  import { DateTimeRange } from "../../DateTimeRange";
+  import type { DateTimeRangeValue } from "../../DateTimeRange";
+  import {
+    parseBackendRange,
+    serializeBackendRange,
+    parseBackendUtc,
+    serializeBackendUtc,
+    DateTimePickerPrecision,
+    FillRequired,
+  } from "../../DateTimePicker";
+
+
+2. Format wartości w React (stan komponentu)
+--------------------------------------------
+Kontrolka operuje na obiektach JavaScript Date - NIE na stringach.
+
+  type DateTimeRangeValue = {
+    start: Date | null;
+    end: Date | null;
+    flexibility?: 0 | 1 | 2 | 3 | 7;   // tylko gdy showFlexDates=true
+  };
+
+Minimalny przykład (kontrolowany):
+
+  const [range, setRange] = useState<DateTimeRangeValue>({
+    start: null,
+    end: null,
+  });
+
+  <DateTimeRange
+    value={range}
+    onChange={setRange}
+    dateTimePrecisions={[DateTimePickerPrecision.Date]}
+  />
+
+Date w JS to zawsze moment w czasie (timestamp). Sposób wyświetlania i
+interpretacji składników (rok, miesiąc, dzień, godzina) zależy od propa
+timezone (patrz sekcja 4).
+
+
+3. Format daty z backendu / do backendu
+---------------------------------------
+ZALECANY KONTRAKT: UTC, ISO 8601.
+
+3a. Pojedyncza data (ISO)
+  Przychodząca:  "2026-08-16T00:00:00.000Z"
+                 "2026-08-16T14:30:00"        ← bez Z też OK (traktowane jako UTC)
+                 "2026-08-16"                 ← traktowane jako 2026-08-16T00:00:00 UTC
+
+  Wychodząca:    date.toISOString()
+                 → zawsze z sufiksem Z, np. "2026-08-16T00:00:00.000Z"
+
+  Helpery (import z DateTimePicker):
+    parseBackendUtc(iso: string): Date
+    serializeBackendUtc(date: Date): string
+
+3b. Zakres dat - format stringowy backendu
+  Backend trzyma jeden string:  "start , end"
+  Separator: przecinek (spacje wokół są opcjonalne).
+
+  Przykład:
+    "2026-08-01T00:00:00.000Z , 2026-08-07T23:59:59.999Z"
+
+  Helpery:
+    parseBackendRange(raw: string): { start: Date | null; end: Date | null }
+    serializeBackendRange(range: DateTimeRangeValue): string | null
+
+3c. Wczytanie z API → stan UI
+
+  // wariant A: backend zwraca jeden string zakresu
+  const { start, end } = parseBackendRange(apiResponse.dateRange);
+  setRange({ start, end });
+
+  // wariant B: backend zwraca osobne pola
+  setRange({
+    start: apiResponse.start ? parseBackendUtc(apiResponse.start) : null,
+    end: apiResponse.end ? parseBackendUtc(apiResponse.end) : null,
+  });
+
+3d. Zapis ze stanu UI → API
+
+  // wariant A: jeden string (zgodny z przykładami w projekcie)
+  const payload = serializeBackendRange(range);
+  // → "2026-08-01T00:00:00.000Z , 2026-08-07T23:59:59.999Z"
+
+  // wariant B: osobne pola JSON
+  const payload = {
+    start: range.start?.toISOString() ?? null,
+    end: range.end?.toISOString() ?? null,
+  };
+
+3e. Elastyczne daty (showFlexDates=true)
+  Osobny format dla API rezerwacji (tylko data, bez czasu):
+
+  serializeFlexRange(range, timezone?) → {
+    from: "2026-08-01",      // YYYY-MM-DD w wybranej strefie
+    to:   "2026-08-07",
+    flexibility: 0 | 1 | 2 | 3 | 7
+  }
+
+  Import: z DateTimeRange/repository (serializeFlexRange).
+
+
+4. Strefa czasowa (timezone)
+-----------------------------
+  timezone?: "UTC" | "system"     // domyślnie: "UTC"
+
+  "UTC"    - kalendarz, godziny, presety i parsowanie pól używają składników UTC.
+             Zalecane, gdy backend trzyma daty w UTC (domyślny scenariusz projektu).
+
+  "system" - używana jest lokalna strefa przeglądarki użytkownika.
+             Użyj tylko gdy backend i biznes operują na czasie lokalnym.
+
+  WAŻNE: Przy timezone="UTC" wybór „16.08.2026 00:00” w UI tworzy instant
+  2026-08-16T00:00:00.000Z. Przy timezone="system" ten sam instant może
+  wyświetlać się inaczej w zależności od strefy użytkownika.
+
+  Spójność end-to-end:
+    backend UTC  →  timezone="UTC"  →  toISOString() / serializeBackendRange()
+    backend lokalny  →  timezone="system"  →  uzgodnij format z backendem
+
+
+5. Precyzja (dateTimePrecisions)
+---------------------------------
+Określa tryb pól (tylko data, data+czas, tylko czas) i format wyświetlania.
+
+  DateTimePickerPrecision.Date                  → dd.MM.yyyy
+  DateTimePickerPrecision.DateTime              → dd.MM.yyyy HH:mm
+  DateTimePickerPrecision.DateTimeSeconds       → dd.MM.yyyy HH:mm:ss
+  DateTimePickerPrecision.DateTimeMilliseconds  → dd.MM.yyyy HH:mm:ss:SSS
+  DateTimePickerPrecision.Time                  → HH:mm
+  DateTimePickerPrecision.TimeSeconds           → HH:mm:ss
+  DateTimePickerPrecision.TimeMilliseconds      → HH:mm:ss:SSS
+
+  <DateTimeRange
+    dateTimePrecisions={[
+      DateTimePickerPrecision.Date,
+      DateTimePickerPrecision.DateTimeMilliseconds,
+    ]}
+  />
+
+Przy trybie Date komponent normalizuje:
+  start → początek dnia (00:00:00.000)
+  end   → koniec dnia   (23:59:59.999)
+w wybranej strefie (timezone).
+
+Przy zapisie do backendu dla zakresów „tylko data” typowy wzorzec:
+  start: pierwsza sekunda dnia UTC
+  end:   ostatnia milisekunda dnia UTC
+  np. "2026-08-01T00:00:00.000Z , 2026-08-07T23:59:59.999Z"
+
+
+6. Walidacja
+------------
+
+6a. Konfiguracja
+  fillRequired?: FillRequired
+    None       - brak wymaganych dat (domyślnie)
+    All        - wymagane start i end
+    StartDate  - wymagany tylko start
+    EndDate    - wymagany tylko end
+
+  Props wizualne:
+    showBorderFieldWhenError={true}   - czerwona ramka na polu z błędem
+    showTextUnderFieldWhenError       - komunikat pod polem (z validationResult.message)
+    error={true}                      - wymusza błąd na obu polach (np. błąd z API)
+
+  validationRules?: Record<kodBłędu, string>  - własne komunikaty, np.:
+    validationRules={{
+      "both-dates-required": "Wybierz datę początkową i końcową",
+      "start-date-required": "Podaj datę początkową",
+      "end-date-required": "Podaj datę końcową",
+      "start-date-format": "Nieprawidłowy format daty początkowej",
+      "end-date-format": "Nieprawidłowy format daty końcowej",
+      "end-date-before-start-date": "Data końcowa nie może być wcześniejsza",
+    }}
+
+  Kody błędów zakresu:
+    both-dates-required, start-date-required, end-date-required,
+    start-date-format, end-date-format,
+    start-date-after-end-date, end-date-before-start-date, invalid-date-range
+
+  Limity zakresu (opcjonalne):
+    maxRangeDays, maxRangeHours, maxRangeMinutes, maxRangeMonths
+    precision={false}  - dni/miesiące kalendarzowe (domyślnie)
+    precision={true}   - dokładnie od momentu start (np. +2 dni = +48 h)
+
+  minDate, maxDate, minDateTime, maxDateTime, disablePast, disableFuture
+
+  validationMode?: "submit" | "blur"     // domyślnie: "submit"
+    "submit" - błędy widoczne dopiero po ref.validate() (formularz / filtry z przyciskiem)
+    "blur"   - błędy po opuszczeniu pola lub kontenera zakresu (prosty formularz bez ref)
+
+
+6b. Automatyczna walidacja po blur (validationMode="blur")
+----------------------------------------------------------
+Wymaga jawnego ustawienia validationMode="blur". Domyślnie kontrolka NIE
+waliduje przy tabie ani blur - patrz sekcja 6c.
+
+Nie musisz podpinać validate() do przycisku. Kontrolka waliduje się sama
+po interakcji użytkownika.
+
+Jak to działa krok po kroku:
+
+  1. POLE START / END (DateTimePickerField wewnątrz zakresu)
+     • Po blurze inputa (lub Enter) parsowany jest tekst z pola.
+     • Sprawdzany jest format daty (date-format).
+     • Wynik trafia do wewnętrznego stanu walidacji pola.
+
+  2. CAŁY ZAKRES (DateTimeRange)
+     • Gdy fokus opuszcza kontener zakresu (focusout), włączana jest
+       pełna walidacja zakresu (showValidation = true).
+     • Dopiero wtedy sprawdzane są: fillRequired, kolejność start ≤ end.
+     • Przed blur całego zakresu (podczas wpisywania) walidacja wymaganych
+       pól jest łagodniejsza - użytkownik może uzupełniać pola po kolei.
+
+  3. WYŚWIETLANIE BŁĘDÓW
+     • Ramka / tekst pod polem pojawia się po blur (nie przy pierwszym renderze).
+     • Otwarty kalendarz/zegar nie wywołuje fałszywego blur (okno 300 ms).
+
+  4. CALLBACK onValidationChange
+     • Wołany gdy zmieni się wynik walidacji (np. po blur).
+     • Typowy użytek: toast z komunikatem błędu.
+
+  Przykład (bez ref, zapis bez validate() - patrz SimpleFormExample):
+
+    const [range, setRange] = useState<DateTimeRangeValue>({
+      start: null,
+      end: null,
+    });
+
+    <DateTimeRange
+      value={range}
+      onChange={setRange}
+      validationMode="blur"
+      fillRequired={FillRequired.All}
+      showBorderFieldWhenError
+      onValidationChange={(result) => {
+        if (!result.valid && result.message) {
+          toast.error(result.message);
+        }
+      }}
+    />
+
+    const handleSave = () => {
+      // UWAGA: bez ref.validate() zapis może pójść nawet gdy pola puste,
+      // jeśli użytkownik nie opuścił jeszcze kontrolki (nie było blur).
+      // Do formularzy z wymaganymi polami lepiej użyć wariantu 6c (domyślny).
+      const payload = serializeBackendRange(range);
+    };
+
+
+6c. Walidacja przy kliknięciu przycisku (ref.validate() - DOMYŚLNY tryb)
+--------------------------------------------------------------------------
+Domyślnie validationMode="submit" - nie trzeba nic dodatkowo konfigurować.
+Walidacja NIE uruchamia się przy tabie, klikaniu między polami ani blur.
+Błędy pojawiają się dopiero po wywołaniu ref.validate() (np. przycisk
+„Wyślij formularz”, „Zapisz”, „Filtruj”).
+
+Typowy scenariusz: formularz filtrów z wymaganym zakresem dat.
+Patrz examples/FilterFormExample.tsx.
+
+  import { useRef, useState } from "react";
+  import { DateTimeRange, type DateTimeRangeHandle } from "../../DateTimeRange";
+  import type { DateTimeRangeValue } from "../../DateTimeRange";
+
+  const EMPTY_RANGE: DateTimeRangeValue = { start: null, end: null };
+
+  const [range, setRange] = useState<DateTimeRangeValue>(EMPTY_RANGE);
+  const rangeRef = useRef<DateTimeRangeHandle>(null);
+
+  const handleSubmit = () => {
+    const result = rangeRef.current?.validate() ?? { valid: true };
+
+    if (!result.valid) {
+      // błędy są już widoczne w UI (showValidation wymuszone na true)
+      // opcjonalnie: toast z result.message
+      return;
+    }
+
+    const payload = serializeBackendRange(range);
+    api.save({ dateRange: payload });
+  };
+
+  const handleClearFilters = () => {
+    setRange(EMPTY_RANGE);           // 1. wyczyść stan React
+    rangeRef.current?.reset();       // 2. wyczyść błędy walidacji w UI
+    // NIE wywołuj validate() - czyszczenie nie powinno uruchamiać walidacji
+  };
+
+  <form onSubmit={(e) => { e.preventDefault(); handleSubmit(); }}>
+    <DateTimeRange
+      ref={rangeRef}
+      value={range}
+      onChange={setRange}
+      fillRequired={FillRequired.All}
+      showBorderFieldWhenError
+      showTextUnderFieldWhenError
+      onValidationChange={(result) => {
+        if (!result.valid && result.message) toast.error(result.message);
+      }}
+    />
+    <Button type="submit" label="Wyślij formularz" />
+    <Button type="button" label="Wyczyść filtry" onClick={handleClearFilters} />
+  </form>
+
+  // validationMode="submit" jest domyślne - nie trzeba go podawać.
+  // Przycisk czyszczenia: type="button" (nie submit!), żeby nie wysłał formularza.
+
+Co robi ref.validate():
+  1. Wywołuje validate() na polu start i end (commit tekstu z inputa).
+  2. Wymusza pełną walidację zakresu (wymagane pola, format, kolejność dat).
+  3. Ustawia widoczne błędy w UI (showValidation = true).
+  4. Woła onValidationChange (z force: true, nawet gdy komunikat się nie zmienił).
+  5. Zwraca DateTimeRangeValidationResult:
+
+       {
+         valid: boolean;
+         reason?: string;          // kod błędu, np. "both-dates-required"
+         message?: string;         // komunikat do wyświetlenia
+         fields?: {
+           start?: { valid, reason?, message? };
+           end?:   { valid, reason?, message? };
+         };
+       }
+
+Wiele kontrolek w jednym formularzu:
+  const ref1 = useRef<DateTimeRangeHandle>(null);
+  const ref2 = useRef<DateTimeRangeHandle>(null);
+
+  const handleSave = () => {
+    const r1 = ref1.current?.validate() ?? { valid: true };
+    const r2 = ref2.current?.validate() ?? { valid: true };
+    if (!r1.valid || !r2.valid) return;
+    // zapis...
+  };
+
+
+6d. Czyszczenie filtrów (reset bez walidacji)
+---------------------------------------------
+Przy „Wyczyść filtry” wykonaj DWA kroki - sam reset stanu React nie wystarczy,
+bo błędy walidacji zostają w kontrolce.
+
+  const handleClearFilters = () => {
+    setRange({ start: null, end: null });   // lub setRange(EMPTY_RANGE)
+    rangeRef.current?.reset();
+  };
+
+Co robi ref.reset():
+  • Czyści stan błędów pól start/end.
+  • Ukrywa komunikaty walidacji (showValidation = false).
+  • Woła onValidationChange({ valid: true }).
+  • NIE wywołuje validate() - użytkownik nie widzi błędów po wyczyszczeniu.
+
+Wskazówki:
+  • Przycisk czyszczenia: type="button" (nie submit).
+  • Trzymaj stałą EMPTY_RANGE, żeby nie tworzyć nowego obiektu inline przy
+    każdym renderze (opcjonalnie, dla czytelności).
+  • Po wyczyszczeniu możesz ponownie wysłać formularz - validate() zadziała
+    dopiero po kolejnym kliknięciu „Wyślij”.
+
+Reset po udanym zapisie (opcjonalnie):
+  rangeRef.current?.reset();
+  setRange({ start: null, end: null });
+
+
+6e. Kiedy którego wariantu użyć
+  ┌─────────────────────────────┬──────────────────────────────────────────┐
+  │ Scenariusz                  │ Podejście                                │
+  ├─────────────────────────────┼──────────────────────────────────────────┤
+  │ Filtr opcjonalny, bez       │ fillRequired=None                        │
+  │ wymaganych dat              │ (validationMode domyślnie submit)        │
+  ├─────────────────────────────┼──────────────────────────────────────────┤
+  │ Wymagane pola, błędy        │ validationMode="blur"                    │
+  │ od razu po blur             │ + fillRequired + showBorderFieldWhenError│
+  ├─────────────────────────────┼──────────────────────────────────────────┤
+  │ Formularz / filtry          │ ref + validate() przy Submit             │
+  │ z przyciskiem Wyślij        │ (domyślny validationMode="submit")       │
+  │ + Wyczyść filtry            │ setRange(empty) + ref.reset()            │
+  └─────────────────────────────┴──────────────────────────────────────────┘
+
+
+7. Presety i elastyczne daty (opcjonalne)
+------------------------------------------
+  showPresets={true}
+    preset / defaultPreset / onPresetChange
+    Klucze: today, yesterday, thisWeek, lastWeek, thisMonth, lastMonth
+    Presety liczone w wybranej timezone.
+
+  showFlexDates={true}
+    flexibility / defaultFlexibility / onFlexibilityChange
+    Wartości: 0 (dokładny), 1, 2, 3, 7 (± dni)
+
+
+8. Typowy przepływ integracji (checklist)
+------------------------------------------
+  [ ] Ustal z backendem: daty w UTC (ISO 8601 z Z) - zalecane.
+  [ ] Zostaw domyślne timezone="UTC" (lub ustaw jawnie).
+  [ ] Wczytaj: parseBackendRange() lub parseBackendUtc() → setRange({ start, end }).
+  [ ] Trzymaj stan jako DateTimeRangeValue w useState / form state.
+  [ ] Zapisz: serializeBackendRange(range) lub start/end.toISOString().
+  [ ] Dla zakresów „tylko data” używaj DateTimePickerPrecision.Date.
+  [ ] Przed submitem formularza: ref.current?.validate() gdy wymagane pola
+      (domyślny validationMode="submit" - patrz sekcja 6c).
+  [ ] Przy „Wyczyść filtry”: setRange(empty) + ref.reset() (sekcja 6d).
+  [ ] Nie przekazuj stringów bezpośrednio do value - zawsze parsuj do Date.
+
+
+9. Przykład kompletny
+---------------------
+  const BACKEND_SAMPLE =
+    "2026-08-01T00:00:00.000Z , 2026-08-07T23:59:59.999Z";
+
+  const [range, setRange] = useState<DateTimeRangeValue>({
+    start: null,
+    end: null,
+  });
+
+  // wczytanie
+  useEffect(() => {
+    const { start, end } = parseBackendRange(BACKEND_SAMPLE);
+    setRange({ start, end });
+  }, []);
+
+  // zapis
+  const handleSave = () => {
+    const payload = serializeBackendRange(range);
+    if (!payload) return; // brak start lub end
+    api.save({ dateRange: payload });
+  };
+
+  <DateTimeRange
+    value={range}
+    onChange={setRange}
+    timezone="UTC"
+    dateTimePrecisions={[DateTimePickerPrecision.Date]}
+    fillRequired={FillRequired.All}
+    showBorderFieldWhenError
+  />
+
+
+10. Najczęstsze błędy
+---------------------
+  • Przekazanie stringa zamiast Date do value - UI nie zadziała poprawnie.
+  • Mieszanie stref: backend UTC + timezone="system" bez konwersji.
+  • Wysyłanie dat lokalnych bez Z, gdy backend oczekuje UTC.
+  • Pominięcie końca dnia przy zakresie „tylko data” (end powinien być 23:59:59.999).
+  • Zakładanie, że parseBackendRange wymaga spacji w separatorze - wystarczy przecinek.
+  • Czyszczenie filtrów tylko przez setRange(null) - błędy walidacji zostają;
+    trzeba też ref.reset() (sekcja 6d).
+  • Oczekiwanie walidacji po blur przy domyślnym validationMode="submit" -
+    użyj validationMode="blur" tylko gdy tego świadomie potrzebujesz.
+
+Przykłady w kodzie:
+  examples/FilterFormExample.tsx          - filtry: Wyślij (validate) + Wyczyść (reset)
+  examples/SimpleFormExample.tsx          - walidacja po blur (validationMode="blur")
+  examples/FormWithValidationExample.tsx  - walidacja przy Zapisz (ref.validate())
+  examples/BackendIntegrationExample.tsx  - integracja z backendem

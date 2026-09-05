@@ -178,7 +178,7 @@ export function Calendar({
 
               const selected = value ? isSameDayTz(day, value, timezone) : false
               const isToday = !disableHighlightToday && isSameDayTz(day, today, timezone)
-              const disabled = isDateDisabled(day, disableOpts)
+              const disabled = isDateDisabled(day, disableOpts, timezone)
 
               return (
                 <button
@@ -217,7 +217,7 @@ export function Calendar({
             const selected = value
               ? isSameMonthTz(candidate, value, timezone)
               : isSameMonthTz(candidate, month, timezone)
-            const disabled = isMonthDisabled(candidate, disableOpts)
+            const disabled = isMonthDisabled(candidate, disableOpts, timezone)
             return (
               <button
                 key={label}
@@ -253,7 +253,7 @@ export function Calendar({
               ? isSameYearTz(candidate, value, timezone)
               : isSameYearTz(candidate, month, timezone)
             const isCurrent = year === getYear(today, timezone)
-            const disabled = isYearDisabled(candidate, disableOpts)
+            const disabled = isYearDisabled(candidate, disableOpts, timezone)
             return (
               <button
                 key={year}

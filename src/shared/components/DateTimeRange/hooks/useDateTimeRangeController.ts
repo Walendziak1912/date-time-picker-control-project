@@ -77,7 +77,10 @@ export function useDateTimeRangeController(props: DateTimeRangeProps) {
     defaultFlexibility = 0,
     fillRequired = FillRequired.None,
     validationRules,
+    validationMode = "submit",
   } = props;
+
+  const validateOnBlur = validationMode === "blur";
 
   const availablePrecisions = useMemo(
     () => normalizeDateTimePrecisions(dateTimePrecisions),
@@ -204,7 +207,12 @@ export function useDateTimeRangeController(props: DateTimeRangeProps) {
 
   const resolveFlexRange = useCallback(
     (nextValue: typeof value) => {
-      const normalized = normalizeRangeValue(nextValue, rangeLimits, mode);
+      const normalized = normalizeRangeValue(
+        nextValue,
+        rangeLimits,
+        mode,
+        timezone,
+      );
       if (!showFlexDates) return normalized;
       return {
         ...normalized,
@@ -212,7 +220,14 @@ export function useDateTimeRangeController(props: DateTimeRangeProps) {
           normalized.flexibility ?? flexibilityProp ?? defaultFlexibility,
       };
     },
-    [defaultFlexibility, flexibilityProp, mode, rangeLimits, showFlexDates],
+    [
+      defaultFlexibility,
+      flexibilityProp,
+      mode,
+      rangeLimits,
+      showFlexDates,
+      timezone,
+    ],
   );
 
   const applyBoundsToRange = useCallback(
@@ -354,16 +369,18 @@ export function useDateTimeRangeController(props: DateTimeRangeProps) {
 
   const handleStartValidationChange = useCallback(
     (result: DateTimeValidationResult) => {
+      if (!validateOnBlur) return;
       setStartFieldValidation(result);
     },
-    [],
+    [validateOnBlur],
   );
 
   const handleEndValidationChange = useCallback(
     (result: DateTimeValidationResult) => {
+      if (!validateOnBlur) return;
       setEndFieldValidation(result);
     },
-    [],
+    [validateOnBlur],
   );
 
   const startConstraints = useMemo(
@@ -376,8 +393,18 @@ export function useDateTimeRangeController(props: DateTimeRangeProps) {
         maxDateTime,
         end: value.end,
         limits: rangeLimits,
+        timezone,
       }),
-    [mode, minDate, maxDate, minDateTime, maxDateTime, value.end, rangeLimits],
+    [
+      mode,
+      minDate,
+      maxDate,
+      minDateTime,
+      maxDateTime,
+      timezone,
+      value.end,
+      rangeLimits,
+    ],
   );
 
   const endConstraints = useMemo(
@@ -390,6 +417,7 @@ export function useDateTimeRangeController(props: DateTimeRangeProps) {
         maxDateTime,
         start: value.start,
         limits: rangeLimits,
+        timezone,
       }),
     [
       mode,
@@ -397,19 +425,20 @@ export function useDateTimeRangeController(props: DateTimeRangeProps) {
       maxDate,
       minDateTime,
       maxDateTime,
+      timezone,
       value.start,
       rangeLimits,
     ],
   );
 
   const endReferenceDate = useMemo(
-    () => resolveEndReferenceDate(value.start, rangeLimits, mode),
-    [mode, rangeLimits, value.start],
+    () => resolveEndReferenceDate(value.start, rangeLimits, mode, timezone),
+    [mode, rangeLimits, timezone, value.start],
   );
 
   const startReferenceDate = useMemo(
-    () => resolveStartReferenceDate(value.end, rangeLimits, mode),
-    [mode, rangeLimits, value.end],
+    () => resolveStartReferenceDate(value.end, rangeLimits, mode, timezone),
+    [mode, rangeLimits, timezone, value.end],
   );
 
   useEffect(() => {
@@ -429,6 +458,10 @@ export function useDateTimeRangeController(props: DateTimeRangeProps) {
   }, []);
 
   useEffect(() => {
+    if (!validateOnBlur) {
+      return;
+    }
+
     const container = rangeContainerRef.current;
     if (!container) {
       return;
@@ -455,7 +488,7 @@ export function useDateTimeRangeController(props: DateTimeRangeProps) {
 
     container.addEventListener("focusout", handleFocusOut);
     return () => container.removeEventListener("focusout", handleFocusOut);
-  }, []);
+  }, [validateOnBlur]);
 
   const validateFields = useCallback(
     (
@@ -533,6 +566,7 @@ export function useDateTimeRangeController(props: DateTimeRangeProps) {
       dateTimePrecisions: availablePrecisions.length > 0 ? availablePrecisions : undefined,
       selectedDateTimePrecision: activePrecision ?? undefined,
       onDateTimePrecisionChange: handleDateTimePrecisionChange,
+      validationMode,
     },
     startProps,
     endProps,

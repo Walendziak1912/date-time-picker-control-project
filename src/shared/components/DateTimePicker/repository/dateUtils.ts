@@ -1,4 +1,13 @@
 import type { DateDisableConstraints, DateTimePickerTimezone, TimeDisableConstraints } from '../types'
+import {
+  getHours,
+  getMilliseconds,
+  getMinutes,
+  getSeconds,
+  isSameDayTz,
+  nowInTimezone,
+  startOfDayTz,
+} from './timezone'
 
 export function startOfDay(date: Date): Date {
   const d = new Date(date);
@@ -240,17 +249,26 @@ export function range(max: number, step: number): number[] {
 export function isDateDisabled(
   day: Date,
   options: DateDisableConstraints,
+  timezone: DateTimePickerTimezone = 'system',
 ): boolean {
-  const dayStart = startOfDay(day);
-  const today = startOfDay(new Date());
+  const dayStart = startOfDayTz(day, timezone);
+  const today = startOfDayTz(nowInTimezone(timezone), timezone);
 
   if (options.disablePast && dayStart < today) return true;
   if (options.disableFuture && dayStart > today) return true;
-  if (options.minDate && dayStart < startOfDay(options.minDate)) return true;
-  if (options.maxDate && dayStart > startOfDay(options.maxDate)) return true;
-  if (options.minDateTime && dayStart < startOfDay(options.minDateTime))
+  if (options.minDate && dayStart < startOfDayTz(options.minDate, timezone))
     return true;
-  if (options.maxDateTime && dayStart > startOfDay(options.maxDateTime))
+  if (options.maxDate && dayStart > startOfDayTz(options.maxDate, timezone))
+    return true;
+  if (
+    options.minDateTime &&
+    dayStart < startOfDayTz(options.minDateTime, timezone)
+  )
+    return true;
+  if (
+    options.maxDateTime &&
+    dayStart > startOfDayTz(options.maxDateTime, timezone)
+  )
     return true;
   if (options.shouldDisableDate?.(day)) return true;
   return false;
@@ -259,6 +277,7 @@ export function isDateDisabled(
 export function isMonthDisabled(
   month: Date,
   options: DateDisableConstraints,
+  timezone: DateTimePickerTimezone = 'system',
 ): boolean {
   const start = new Date(month.getFullYear(), month.getMonth(), 1);
   const end = new Date(month.getFullYear(), month.getMonth() + 1, 0);
@@ -266,7 +285,7 @@ export function isMonthDisabled(
 
   for (let d = start.getDate(); d <= end.getDate(); d += 1) {
     const day = new Date(month.getFullYear(), month.getMonth(), d);
-    if (!isDateDisabled(day, options)) return false;
+    if (!isDateDisabled(day, options, timezone)) return false;
   }
   return true;
 }
@@ -274,12 +293,13 @@ export function isMonthDisabled(
 export function isYearDisabled(
   year: Date,
   options: DateDisableConstraints,
+  timezone: DateTimePickerTimezone = 'system',
 ): boolean {
   const y = year.getFullYear();
   if (options.shouldDisableYear?.(new Date(y, 0, 1))) return true;
 
   for (let m = 0; m < 12; m += 1) {
-    if (!isMonthDisabled(new Date(y, m, 1), options)) return false;
+    if (!isMonthDisabled(new Date(y, m, 1), options, timezone)) return false;
   }
   return true;
 }
@@ -288,18 +308,27 @@ export function isTimeDisabled(
   candidate: Date,
   view: 'hours' | 'minutes' | 'seconds' | 'milliseconds',
   options: TimeDisableConstraints,
+  timezone: DateTimePickerTimezone = 'system',
 ): boolean {
-  const now = new Date();
+  const now = nowInTimezone(timezone);
   const timeOf = (d: Date) =>
-    d.getHours() * 3600000 +
-    d.getMinutes() * 60000 +
-    d.getSeconds() * 1000 +
-    d.getMilliseconds();
+    getHours(d, timezone) * 3600000 +
+    getMinutes(d, timezone) * 60000 +
+    getSeconds(d, timezone) * 1000 +
+    getMilliseconds(d, timezone);
   const candidateTime = timeOf(candidate);
 
-  if (options.disablePast && isSameDay(candidate, now) && candidate < now)
+  if (
+    options.disablePast &&
+    isSameDayTz(candidate, now, timezone) &&
+    candidate < now
+  )
     return true;
-  if (options.disableFuture && isSameDay(candidate, now) && candidate > now)
+  if (
+    options.disableFuture &&
+    isSameDayTz(candidate, now, timezone) &&
+    candidate > now
+  )
     return true;
 
   if (options.minTime && candidateTime < timeOf(options.minTime)) return true;

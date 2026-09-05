@@ -143,7 +143,7 @@ export function TimeMillisecondsExample() {
 export function DigitalClockExample() {
   return (
     <PickerVariantExample
-      title="Sam czas (HH:mm:ss) — zegar cyfrowy"
+      title="Sam czas (HH:mm:ss) - zegar cyfrowy"
       dateTimePrecisions={DateTimePickerPrecision.TimeSeconds}
       timeVariant="digital"
     />
@@ -153,7 +153,7 @@ export function DigitalClockExample() {
 export function RequiredDateExample() {
   return (
     <PickerVariantExample
-      title="Data wymagana (fillRequired=All) — błąd w toaście"
+      title="Data wymagana (fillRequired=All) - błąd w toaście"
       dateTimePrecisions={DateTimePickerPrecision.Date}
       showBorderFieldWhenError
       fillRequired={FillRequired.All}

@@ -49,39 +49,56 @@ describe("DateTimeRange repository isRangeOrderValid", () => {
 describe("DateTimeRange repository getMaxEndForStart testy limitu godzinowego oraz precision", () => {
     test("Props maxRangeHours=48 z precyzją liczy dokładne 48h od startu", () => {
         const start = utc(2026, 6, 27, 12);
-        const maxEnd = getMaxEndForStart(start, { maxRangeHours: 48, precision: true }, "datetime");
+        const maxEnd = getMaxEndForStart(start, { maxRangeHours: 48, precision: true }, "datetime", "UTC");
         expect(maxEnd!.toISOString()).toBe("2026-07-29T12:00:00.000Z");
     });
 
     test("Bez limitów zwraca undefined", () => {
         const start = utc(2026, 6, 27, 12);
-        expect(getMaxEndForStart(start, {}, "datetime")).toBeUndefined();
+        expect(getMaxEndForStart(start, {}, "datetime", "UTC")).toBeUndefined();
     });
 
     test("Gdy wiele limitów wybiera najwcześniejszy koniec", () => {
         const start = utc(2026, 6, 27, 0);
-        const maxEnd = getMaxEndForStart(start, { maxRangeHours: 48, maxRangeMinutes: 24 * 60, precision: true }, "datetime");
+        const maxEnd = getMaxEndForStart(start, { maxRangeHours: 48, maxRangeMinutes: 24 * 60, precision: true }, "datetime", "UTC");
         expect(maxEnd!.toISOString()).toBe("2026-07-28T00:00:00.000Z");
+    });
+
+    test("maxRangeDays=5 w trybie kalendarzowym liczy dni w UTC, nie w strefie lokalnej", () => {
+        const start = utc(2026, 8, 23, 0);
+        const maxEnd = getMaxEndForStart(start, { maxRangeDays: 5 }, "datetime", "UTC");
+        expect(maxEnd!.toISOString()).toBe("2026-09-27T23:59:59.999Z");
     });
 });
 
 describe("DateTimeRange repository getMinStartForEnd (limit godzinowy opcja precision)", () => {
     test("Props maxRangeHours=48 z precyzją powinno liczyć 48h wstecz od końca", () => {
         const end = utc(2026, 6, 29, 12);
-        const minStart = getMinStartForEnd(end, { maxRangeHours: 48, precision: true }, "datetime");
+        const minStart = getMinStartForEnd(end, { maxRangeHours: 48, precision: true }, "datetime", "UTC");
         expect(minStart!.toISOString()).toBe("2026-07-27T12:00:00.000Z");
     });
 });
 
 describe("DateTimeRange repository normalizeRangeValue", () => {
     test("Start > end koryguje end do start", () => {
-        const result = normalizeRangeValue({ start: utc(2026, 6, 20), end: utc(2026, 6, 10) }, {}, "datetime");
+        const result = normalizeRangeValue({ start: utc(2026, 6, 20), end: utc(2026, 6, 10) }, {}, "datetime", "UTC");
         expect(result.end!.getTime()).toBe(result.start!.getTime());
     });
 
     test("Przycinanie end do maksymalnego zakresu (maxRangeDays + precyzją)", () => {
-        const result = normalizeRangeValue({ start: utc(2026, 6, 27, 0), end: utc(2026, 6, 30, 0) }, { maxRangeDays: 2, precision: true }, "datetime");
+        const result = normalizeRangeValue({ start: utc(2026, 6, 27, 0), end: utc(2026, 6, 30, 0) }, { maxRangeDays: 2, precision: true }, "datetime", "UTC");
         expect(result.end!.toISOString()).toBe("2026-07-29T00:00:00.000Z");
+    });
+
+    test("Przycinanie end do maksymalnego zakresu kalendarzowego maxRangeDays=5", () => {
+        const start = utc(2026, 8, 23, 0);
+        const result = normalizeRangeValue(
+            { start, end: utc(2026, 8, 30, 0) },
+            { maxRangeDays: 5 },
+            "datetime",
+            "UTC",
+        );
+        expect(result.end!.toISOString()).toBe("2026-09-27T23:59:59.999Z");
     });
 });
 
@@ -92,6 +109,7 @@ describe("DateTimeRange repository buildEndConstraints/buildStartConstraints dat
             mode: "datetime",
             start,
             limits: {},
+            timezone: "UTC",
         });
         expect(constraints.minDateTime!.getTime()).toBe(start.getTime());
     });
@@ -102,6 +120,7 @@ describe("DateTimeRange repository buildEndConstraints/buildStartConstraints dat
             mode: "datetime",
             end,
             limits: {},
+            timezone: "UTC",
         });
         expect(constraints.maxDateTime!.getTime()).toBe(end.getTime());
     });

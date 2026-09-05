@@ -64,7 +64,7 @@ function PickerDemo({
 export function PrecisionSwitchTwoModesExample() {
   return (
     <PickerDemo
-      title="Przełącznik precyzji — 2 tryby (data / data + czas ms)"
+      title="Przełącznik precyzji - 2 tryby (data / data + czas ms)"
       dateTimePrecisions={[
         DateTimePickerPrecision.Date,
         DateTimePickerPrecision.DateTimeMilliseconds,
@@ -76,7 +76,7 @@ export function PrecisionSwitchTwoModesExample() {
 export function PrecisionDropdownExample() {
   return (
     <PickerDemo
-      title="Przełącznik precyzji — 4 tryby (dropdown)"
+      title="Przełącznik precyzji - 4 tryby (dropdown)"
       dateTimePrecisions={[
         DateTimePickerPrecision.Date,
         DateTimePickerPrecision.DateTime,
@@ -94,7 +94,7 @@ export function ControlledPrecisionExample() {
 
   return (
     <PickerDemo
-      title="Przełącznik precyzji — tryb kontrolowany"
+      title="Przełącznik precyzji - tryb kontrolowany"
       dateTimePrecisions={[
         DateTimePickerPrecision.Date,
         DateTimePickerPrecision.DateTime,

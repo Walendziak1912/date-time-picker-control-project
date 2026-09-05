@@ -1,5 +1,6 @@
 import { BackendIntegrationExample } from "./BackendIntegrationExample";
 import { EmissionAnalysisExample } from "./EmissionAnalysisExample";
+import { FilterFormExample } from "./FilterFormExample";
 import { FormWithValidationExample } from "./FormWithValidationExample";
 import {
   MultiPrecisionExample,
@@ -29,6 +30,9 @@ export const ExampleDateTimeRange: React.FC = () => (
       </div>
       <div className="col-12">
         <FormWithValidationExample />
+      </div>
+      <div className="col-12">
+        <FilterFormExample />
       </div>
       <div className="col-12 lg:col-6">
         <SimpleFormExample />

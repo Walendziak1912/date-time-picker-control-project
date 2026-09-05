@@ -124,7 +124,7 @@ export function AnalogClock({
         timezone,
         resolvedMilliseconds,
       )
-      if (!isTimeDisabled(next, 'hours', disableOpts)) onChange(next)
+      if (!isTimeDisabled(next, 'hours', disableOpts, timezone)) onChange(next)
     } else if (clockView === 'minutes') {
       const raw = Math.round(deg / 6) % 60
       const snapped = snapToStep(raw, minuteStep, 60)
@@ -136,7 +136,7 @@ export function AnalogClock({
         timezone,
         resolvedMilliseconds,
       )
-      if (!isTimeDisabled(next, 'minutes', disableOpts)) onChange(next)
+      if (!isTimeDisabled(next, 'minutes', disableOpts, timezone)) onChange(next)
     } else if (clockView === 'seconds') {
       const raw = Math.round(deg / 6) % 60
       const snapped = snapToStep(raw, secondStep, 60)
@@ -148,7 +148,7 @@ export function AnalogClock({
         timezone,
         resolvedMilliseconds,
       )
-      if (!isTimeDisabled(next, 'seconds', disableOpts)) onChange(next)
+      if (!isTimeDisabled(next, 'seconds', disableOpts, timezone)) onChange(next)
     } else {
       const raw = Math.round(deg / 0.36) % 1000
       const snapped = snapToStep(raw, millisecondStep, 1000)
@@ -160,7 +160,7 @@ export function AnalogClock({
         timezone,
         snapped,
       )
-      if (!isTimeDisabled(next, 'milliseconds', disableOpts)) onChange(next)
+      if (!isTimeDisabled(next, 'milliseconds', disableOpts, timezone)) onChange(next)
     }
   }
 

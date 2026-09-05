@@ -1,31 +1,62 @@
-import { startOfDay } from "../../DateTimePicker/repository/dateUtils";
-import type { DateTimePickerMode } from "../../DateTimePicker/types";
+import {
+  addMonthsTz,
+  createInstant,
+  endOfDayTz,
+  getDate,
+  getMonth,
+  getYear,
+  startOfDayTz,
+} from "../../DateTimePicker/repository/timezone";
+import type {
+  DateTimePickerMode,
+  DateTimePickerTimezone,
+} from "../../DateTimePicker/types";
 import type { DateTimeRangeLimits, DateTimeRangeValue } from "../types";
 
 const MS_PER_MINUTE = 60 * 1000;
 const MS_PER_HOUR = 60 * MS_PER_MINUTE;
 const MS_PER_DAY = 24 * MS_PER_HOUR;
 
-export function addCalendarDays(date: Date, days: number): Date {
-  const next = startOfDay(date);
-  next.setDate(next.getDate() + days);
-  return next;
-}
+export function addCalendarDays(
+  date: Date,
+  days: number,
+  timezone: DateTimePickerTimezone,
+): Date {
+  const next = startOfDayTz(date, timezone);
 
-export function addCalendarMonths(date: Date, months: number): Date {
-  const next = new Date(date);
-  const day = next.getDate();
-  next.setMonth(next.getMonth() + months);
-  if (next.getDate() < day) {
-    next.setDate(0);
+  if (timezone === "UTC") {
+    return createInstant(
+      {
+        year: getYear(next, timezone),
+        month: getMonth(next, timezone),
+        date: getDate(next, timezone) + days,
+      },
+      timezone,
+    );
   }
-  return next;
+
+  const result = new Date(next);
+  result.setDate(result.getDate() + days);
+  return result;
 }
 
-export function endOfDay(date: Date): Date {
-  const end = startOfDay(date);
-  end.setHours(23, 59, 59, 999);
-  return end;
+export function addCalendarMonths(
+  date: Date,
+  months: number,
+  timezone: DateTimePickerTimezone,
+): Date {
+  return addMonthsTz(date, months, timezone);
+}
+
+export function endOfDay(
+  date: Date,
+  timezone: DateTimePickerTimezone,
+): Date {
+  return endOfDayTz(date, timezone);
+}
+
+function startOfDay(date: Date, timezone: DateTimePickerTimezone): Date {
+  return startOfDayTz(date, timezone);
 }
 
 export function hasRangeLimits(limits: DateTimeRangeLimits): boolean {
@@ -42,16 +73,17 @@ function getMaxEndFromDays(
   days: number,
   mode: DateTimePickerMode,
   precision: boolean,
+  timezone: DateTimePickerTimezone,
 ): Date {
   if (precision) {
     return new Date(start.getTime() + days * MS_PER_DAY);
   }
 
   if (mode === "date") {
-    return endOfDay(addCalendarDays(start, days - 1));
+    return endOfDay(addCalendarDays(start, days - 1, timezone), timezone);
   }
 
-  return endOfDay(addCalendarDays(start, days - 1));
+  return endOfDay(addCalendarDays(start, days - 1, timezone), timezone);
 }
 
 function getMinStartFromDays(
@@ -59,53 +91,63 @@ function getMinStartFromDays(
   days: number,
   mode: DateTimePickerMode,
   precision: boolean,
+  timezone: DateTimePickerTimezone,
 ): Date {
   if (precision) {
     return new Date(end.getTime() - days * MS_PER_DAY);
   }
 
   if (mode === "date") {
-    return startOfDay(addCalendarDays(end, -(days - 1)));
+    return startOfDay(addCalendarDays(end, -(days - 1), timezone), timezone);
   }
 
-  return startOfDay(addCalendarDays(end, -(days - 1)));
+  return startOfDay(addCalendarDays(end, -(days - 1), timezone), timezone);
 }
 
 function getMaxEndFromMonths(
   start: Date,
   months: number,
   precision: boolean,
+  timezone: DateTimePickerTimezone,
 ): Date {
   if (precision) {
-    return addCalendarMonths(start, months);
+    return addCalendarMonths(start, months, timezone);
   }
 
-  return endOfDay(addCalendarMonths(startOfDay(start), months - 1));
+  return endOfDay(
+    addCalendarMonths(startOfDay(start, timezone), months - 1, timezone),
+    timezone,
+  );
 }
 
 function getMinStartFromMonths(
   end: Date,
   months: number,
   precision: boolean,
+  timezone: DateTimePickerTimezone,
 ): Date {
   if (precision) {
-    return addCalendarMonths(end, -months);
+    return addCalendarMonths(end, -months, timezone);
   }
 
-  return startOfDay(addCalendarMonths(startOfDay(end), -(months - 1)));
+  return startOfDay(
+    addCalendarMonths(startOfDay(end, timezone), -(months - 1), timezone),
+    timezone,
+  );
 }
 
 export function getMaxEndForStart(
   start: Date,
   limits: DateTimeRangeLimits,
   mode: DateTimePickerMode,
+  timezone: DateTimePickerTimezone,
 ): Date | undefined {
   const precision = limits.precision ?? false;
   const candidates: Date[] = [];
 
   if (limits.maxRangeDays != null && limits.maxRangeDays > 0) {
     candidates.push(
-      getMaxEndFromDays(start, limits.maxRangeDays, mode, precision),
+      getMaxEndFromDays(start, limits.maxRangeDays, mode, precision, timezone),
     );
   }
 
@@ -123,7 +165,7 @@ export function getMaxEndForStart(
 
   if (limits.maxRangeMonths != null && limits.maxRangeMonths > 0) {
     candidates.push(
-      getMaxEndFromMonths(start, limits.maxRangeMonths, precision),
+      getMaxEndFromMonths(start, limits.maxRangeMonths, precision, timezone),
     );
   }
 
@@ -138,13 +180,14 @@ export function getMinStartForEnd(
   end: Date,
   limits: DateTimeRangeLimits,
   mode: DateTimePickerMode,
+  timezone: DateTimePickerTimezone,
 ): Date | undefined {
   const precision = limits.precision ?? false;
   const candidates: Date[] = [];
 
   if (limits.maxRangeDays != null && limits.maxRangeDays > 0) {
     candidates.push(
-      getMinStartFromDays(end, limits.maxRangeDays, mode, precision),
+      getMinStartFromDays(end, limits.maxRangeDays, mode, precision, timezone),
     );
   }
 
@@ -162,7 +205,7 @@ export function getMinStartForEnd(
 
   if (limits.maxRangeMonths != null && limits.maxRangeMonths > 0) {
     candidates.push(
-      getMinStartFromMonths(end, limits.maxRangeMonths, precision),
+      getMinStartFromMonths(end, limits.maxRangeMonths, precision, timezone),
     );
   }
 
@@ -197,6 +240,7 @@ export function normalizeRangeValue(
   value: DateTimeRangeValue,
   limits: DateTimeRangeLimits,
   mode: DateTimePickerMode,
+  timezone: DateTimePickerTimezone,
 ): DateTimeRangeValue {
   let { start, end } = value;
 
@@ -205,7 +249,7 @@ export function normalizeRangeValue(
   }
 
   if (hasRangeLimits(limits) && start != null && end != null) {
-    const maxEnd = getMaxEndForStart(start, limits, mode);
+    const maxEnd = getMaxEndForStart(start, limits, mode, timezone);
     if (maxEnd != null && end > maxEnd) {
       end = maxEnd;
     }
@@ -228,13 +272,22 @@ export function buildStartConstraints(options: {
   maxDateTime?: Date;
   end: Date | null;
   limits: DateTimeRangeLimits;
+  timezone: DateTimePickerTimezone;
 }) {
-  const { mode, minDate, maxDate, minDateTime, maxDateTime, end, limits } =
-    options;
+  const {
+    mode,
+    minDate,
+    maxDate,
+    minDateTime,
+    maxDateTime,
+    end,
+    limits,
+    timezone,
+  } = options;
 
   const rangeMin =
     end != null && hasRangeLimits(limits)
-      ? getMinStartForEnd(end, limits, mode)
+      ? getMinStartForEnd(end, limits, mode, timezone)
       : undefined;
 
   const rangeMax = end ?? undefined;
@@ -260,11 +313,12 @@ export function resolveEndReferenceDate(
   start: Date | null,
   limits: DateTimeRangeLimits,
   mode: DateTimePickerMode,
+  timezone: DateTimePickerTimezone,
 ): Date | undefined {
   if (start == null) return undefined;
 
   if (hasRangeLimits(limits)) {
-    return getMaxEndForStart(start, limits, mode) ?? start;
+    return getMaxEndForStart(start, limits, mode, timezone) ?? start;
   }
 
   return start;
@@ -274,11 +328,12 @@ export function resolveStartReferenceDate(
   end: Date | null,
   limits: DateTimeRangeLimits,
   mode: DateTimePickerMode,
+  timezone: DateTimePickerTimezone,
 ): Date | undefined {
   if (end == null) return undefined;
 
   if (hasRangeLimits(limits)) {
-    return getMinStartForEnd(end, limits, mode) ?? end;
+    return getMinStartForEnd(end, limits, mode, timezone) ?? end;
   }
 
   return end;
@@ -292,14 +347,23 @@ export function buildEndConstraints(options: {
   maxDateTime?: Date;
   start: Date | null;
   limits: DateTimeRangeLimits;
+  timezone: DateTimePickerTimezone;
 }) {
-  const { mode, minDate, maxDate, minDateTime, maxDateTime, start, limits } =
-    options;
+  const {
+    mode,
+    minDate,
+    maxDate,
+    minDateTime,
+    maxDateTime,
+    start,
+    limits,
+    timezone,
+  } = options;
 
   const rangeMin = start ?? undefined;
   const rangeMax =
     start != null && hasRangeLimits(limits)
-      ? getMaxEndForStart(start, limits, mode)
+      ? getMaxEndForStart(start, limits, mode, timezone)
       : undefined;
 
   if (mode === "date") {

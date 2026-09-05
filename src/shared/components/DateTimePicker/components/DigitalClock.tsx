@@ -171,7 +171,7 @@ export function DigitalClock({
       aria-label={viewLabel(view)}
     >
       {items.map((item) => {
-        const disabled = isTimeDisabled(candidateFor(view, item), view, disableOpts)
+        const disabled = isTimeDisabled(candidateFor(view, item), view, disableOpts, timezone)
 
         return (
           <li key={`${view}-${item}`}>

@@ -72,7 +72,7 @@ export function resolveFullBounds({
   };
 }
 
-/** Normalizuje start i end osobno — bez uzupełniania end z start (DateTimeRange). */
+/** Normalizuje start i end osobno - bez uzupełniania end z start (DateTimeRange). */
 export function resolveFullBoundsFields({
   start,
   end,

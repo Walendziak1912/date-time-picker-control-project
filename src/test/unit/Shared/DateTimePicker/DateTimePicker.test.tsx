@@ -129,6 +129,7 @@ describe("DateTimePicker", () => {
         render(
             <DateTimePicker
                 dateTimePrecisions={DateTimePickerPrecision.Date}
+                validationMode="blur"
                 onValidationChange={onValidationChange}
             />,
         );
@@ -152,6 +153,7 @@ describe("DateTimePicker", () => {
         render(
             <DateTimePicker
                 dateTimePrecisions={DateTimePickerPrecision.Date}
+                validationMode="blur"
                 onValidationChange={onValidationChange}
                 validationRules={{ "date-format": "Wpisz poprawną datę dd.MM.yyyy" }}
             />,
@@ -177,6 +179,7 @@ describe("DateTimePicker", () => {
         render(
             <DateTimePicker
                 dateTimePrecisions={DateTimePickerPrecision.Date}
+                validationMode="blur"
                 defaultValue={utcDay(2025, 0, 1)}
                 onChange={onChange}
                 onValidationChange={onValidationChange}
@@ -217,6 +220,7 @@ describe("DateTimePicker", () => {
         render(
             <DateTimePicker
                 dateTimePrecisions={DateTimePickerPrecision.Date}
+                validationMode="blur"
                 defaultValue={utcDay(2025, 0, 1)}
                 fillRequired={FillRequired.All}
                 onValidationChange={onValidationChange}

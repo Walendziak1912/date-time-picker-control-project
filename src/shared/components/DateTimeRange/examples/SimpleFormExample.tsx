@@ -23,11 +23,11 @@ export function SimpleFormExample() {
 
   return (
     <div className="flex flex-column gap-3 p-4 h-full border-1 surface-border border-round surface-card">
-      <h4 className="m-0">Formularz bez ref — tylko useState + onChange</h4>
+      <h4 className="m-0">Formularz bez ref - tylko useState + onChange</h4>
       <p className="m-0 text-color-secondary">
         Wariant bez ref i validate() przy Zapisz. Wartość trzymana w stanie
         rodzica. Błędy pokazują się po interakcji z polem (blur), przez
-        onValidationChange.
+        onValidationChange. Wymaga <code>validationMode="blur"</code>.
       </p>
       <form
         className="flex flex-column gap-3 align-items-start"
@@ -51,6 +51,7 @@ export function SimpleFormExample() {
               }
             }}
             showBorderFieldWhenError
+            validationMode="blur"
             fillRequired={FillRequired.All}
           />
         </div>

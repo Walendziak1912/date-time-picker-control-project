@@ -12,6 +12,7 @@ import type {
   DateTimePickerProps,
   DateTimePickerFieldProps,
   DateTimePickerTimezone,
+  DateTimeValidationMode,
   DateTimeValidationResult,
   TimePickerVariant,
   TimeSteps,
@@ -191,6 +192,8 @@ export type DateTimeRangeProps = SharedPickerProps & {
   fillRequired?: FillRequired;
   //nadpisanie komunikatów walidacji (klucz = kod błędu). Brak klucza = domyślny komunikat
   validationRules?: ValidationRules;
+  /** Domyślnie "submit" - błędy po ref.validate(). Ustaw "blur" dla walidacji po opuszczeniu pola. */
+  validationMode?: DateTimeValidationMode;
 };
 
 export type DateTimeRangeSharedConfig = {

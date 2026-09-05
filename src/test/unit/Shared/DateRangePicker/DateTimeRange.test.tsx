@@ -108,6 +108,45 @@ describe("DateTimeRange", () => {
     );
   });
 
+  test("Wybór końcowej daty w kalendarzu przy precyzji ms domyślnie ustawia 23:59:59.999", () => {
+    const onChange = vi.fn();
+    render(
+      <DateTimeRange
+        dateTimePrecisions={[
+          DateTimePickerPrecision.Date,
+          DateTimePickerPrecision.DateTimeMilliseconds,
+        ]}
+        selectedDateTimePrecision={DateTimePickerPrecision.DateTimeMilliseconds}
+        value={{ start: utc(2026, 6, 1), end: null }}
+        onChange={onChange}
+      />,
+    );
+
+    const endInput = screen.getAllByRole("textbox")[1];
+    fireEvent.click(
+      endInput.parentElement!.querySelector("button[aria-label='Otwórz wybór daty i godziny']")!,
+    );
+
+    const day20 = screen
+      .getAllByRole("gridcell")
+      .find(
+        (cell) =>
+          cell.textContent === "20" &&
+          !cell.classList.contains("dtp-day--outside"),
+      );
+    fireEvent.click(day20!);
+
+    expect(endInput).toHaveValue("20.07.2026 23:59:59:999");
+
+    fireEvent.click(screen.getByRole("button", { name: "Zatwierdź" }));
+
+    const [nextValue, context] = onChange.mock.calls.at(-1)!;
+    expect(context.source).toBe("end");
+    expect((nextValue as DateTimeRangeValue).end!.toISOString()).toBe(
+      "2026-07-20T23:59:59.999Z",
+    );
+  });
+
   test("Niepoprawny format w polu początkowym raportuje start-date-format przez validate()", () => {
     const onValidationChange = vi.fn();
     const ref = createRef<DateTimeRangeHandle>();
@@ -123,7 +162,6 @@ describe("DateTimeRange", () => {
     const startInput = screen.getAllByRole("textbox")[0];
     fireEvent.focus(startInput);
     fireEvent.change(startInput, { target: { value: "zła data" } });
-    fireEvent.blur(startInput);
 
     let result;
     act(() => {
@@ -231,6 +269,7 @@ describe("DateTimeRange", () => {
         dateTimePrecisions={DateTimePickerPrecision.Date}
         value={{ start: null, end: null }}
         fillRequired={FillRequired.All}
+        validationMode="blur"
         onValidationChange={onValidationChange}
         validationRules={{ "both-dates-required": "Wybierz obie daty" }}
       />,
@@ -258,6 +297,7 @@ describe("DateTimeRange", () => {
         dateTimePrecisions={DateTimePickerPrecision.Date}
         value={{ start: null, end: utc(2026, 6, 10) }}
         fillRequired={FillRequired.StartDate}
+        validationMode="blur"
         onValidationChange={onValidationChange}
       />,
     );
@@ -309,5 +349,54 @@ describe("DateTimeRange", () => {
     screen
       .getAllByRole("textbox")
       .forEach((input) => expect(input).toBeDisabled());
+  });
+
+  test("Domyślny tryb submit nie wywołuje onValidationChange po blur poza zakresem", async () => {
+    const onValidationChange = vi.fn();
+    render(
+      <DateTimeRange
+        dateTimePrecisions={DateTimePickerPrecision.Date}
+        value={{ start: null, end: null }}
+        fillRequired={FillRequired.All}
+        onValidationChange={onValidationChange}
+      />,
+    );
+
+    const startInput = screen.getAllByRole("textbox")[0];
+    fireEvent.focus(startInput);
+    fireEvent.blur(startInput, { relatedTarget: document.body });
+
+    await waitFor(() => {
+      expect(onValidationChange).not.toHaveBeenCalled();
+    });
+  });
+
+  test("Domyślny tryb submit nadal waliduje przez ref.validate()", () => {
+    const onValidationChange = vi.fn();
+    const ref = createRef<DateTimeRangeHandle>();
+    render(
+      <DateTimeRange
+        ref={ref}
+        dateTimePrecisions={DateTimePickerPrecision.Date}
+        value={{ start: null, end: null }}
+        fillRequired={FillRequired.All}
+        onValidationChange={onValidationChange}
+        validationRules={{ "both-dates-required": "Wybierz obie daty" }}
+      />,
+    );
+
+    let result;
+    act(() => {
+      result = ref.current!.validate();
+    });
+
+    expect(result!.valid).toBe(false);
+    expect(result!.reason).toBe("both-dates-required");
+    expect(onValidationChange).toHaveBeenCalledWith(
+      expect.objectContaining({
+        valid: false,
+        reason: "both-dates-required",
+      }),
+    );
   });
 });

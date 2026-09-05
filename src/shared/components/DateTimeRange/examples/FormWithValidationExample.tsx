@@ -92,7 +92,10 @@ export function FormWithValidationExample() {
             Zakres dat wymagany z ograniczeniem do 5 dni
           </label>
           <DateTimeRange
-            dateTimePrecisions={DateTimePickerPrecision.Date}
+            dateTimePrecisions={[
+              DateTimePickerPrecision.Date,
+              DateTimePickerPrecision.DateTimeMilliseconds,
+            ]}
             ref={rangeMaxDaysRef}
             value={rangeMaxDays}
             onChange={setRangeMaxDays}

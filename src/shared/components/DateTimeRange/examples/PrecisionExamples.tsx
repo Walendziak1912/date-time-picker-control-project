@@ -108,7 +108,7 @@ export function PrecisionSwitchExample() {
 
     <RangeDemo
 
-      title="Przełącznik precyzji — 2 tryby (data / data + czas ms), domyślnie pełny dzień"
+      title="Przełącznik precyzji - 2 tryby (data / data + czas ms), domyślnie pełny dzień"
 
       dateTimePrecisions={[
 
@@ -132,7 +132,7 @@ export function MultiPrecisionExample() {
 
     <RangeDemo
 
-      title="Przełącznik precyzji — więcej niż 2 tryby (dropdown)"
+      title="Przełącznik precyzji - więcej niż 2 tryby (dropdown)"
 
       dateTimePrecisions={[
 

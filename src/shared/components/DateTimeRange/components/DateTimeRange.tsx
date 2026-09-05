@@ -56,6 +56,7 @@ export const DateTimeRange = forwardRef<DateTimeRangeHandle, DateTimeRangeProps>
         rangeLocaleText,
         fillRequired,
         validationRules,
+        validationMode,
         ...pickerProps
     } = props;
 
@@ -91,6 +92,7 @@ export const DateTimeRange = forwardRef<DateTimeRangeHandle, DateTimeRangeProps>
         timezone,
         fillRequired,
         validationRules,
+        validationMode,
         ...pickerProps,
     });
 
@@ -259,6 +261,7 @@ export const DateTimeRange = forwardRef<DateTimeRangeHandle, DateTimeRangeProps>
                     minDateTime={startConstraints.minDateTime}
                     maxDateTime={startConstraints.maxDateTime}
                     referenceDate={startReferenceDate}
+                    daySelectBound="start"
                 />
 
                 {separator != null && (
@@ -288,6 +291,7 @@ export const DateTimeRange = forwardRef<DateTimeRangeHandle, DateTimeRangeProps>
                     minDateTime={endConstraints.minDateTime}
                     maxDateTime={endConstraints.maxDateTime}
                     referenceDate={endReferenceDate}
+                    daySelectBound="end"
                 />
 
                 {showPresets && (
