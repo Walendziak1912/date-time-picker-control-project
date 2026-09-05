@@ -186,7 +186,7 @@ export function useDateTimeRangeController(props: DateTimeRangeProps) {
         locale,
         validationRules,
         checkRequiredAndRange: showValidation,
-        allowPartialRange: true,
+        allowPartialRange: false,
       }),
     [
       endFieldName,
@@ -448,6 +448,26 @@ export function useDateTimeRangeController(props: DateTimeRangeProps) {
 
     notifyValidation(validationResult);
   }, [notifyValidation, showValidation, validationResult]);
+
+  useEffect(() => {
+    if (!showValidation || !validationResult.fields) {
+      return;
+    }
+
+    const { start, end } = validationResult.fields;
+
+    if (start) {
+      setStartFieldValidation((prev) =>
+        prev.valid === start.valid && prev.reason === start.reason ? prev : start,
+      );
+    }
+
+    if (end) {
+      setEndFieldValidation((prev) =>
+        prev.valid === end.valid && prev.reason === end.reason ? prev : end,
+      );
+    }
+  }, [showValidation, validationResult]);
 
   const handlePickerClose = useCallback(() => {
     pickerInteractionGraceUntilRef.current = Date.now() + 300;

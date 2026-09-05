@@ -36,7 +36,7 @@ export function BackendIntegrationExample() {
       <h4 className="m-0">Wczytanie i zapis zakresu z backendu</h4>
       <p className="m-0 text-color-secondary">
         Backend trzyma string <code>start , end</code> w UTC. Komponent zwraca
-        znormalizowany zakres - serializujesz go bezpośrednio ze stanu.
+        znormalizowany zakres
       </p>
       <div className="flex flex-wrap gap-2">
         <Button

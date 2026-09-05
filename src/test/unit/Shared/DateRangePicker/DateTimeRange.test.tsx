@@ -399,4 +399,68 @@ describe("DateTimeRange", () => {
       }),
     );
   });
+
+  test("Po validate() uzupełnienie wymaganych dat usuwa ramkę błędu bez ponownego submit", () => {
+    const onValidationChange = vi.fn();
+    const ref = createRef<DateTimeRangeHandle>();
+    const { rerender } = render(
+      <DateTimeRange
+        ref={ref}
+        dateTimePrecisions={DateTimePickerPrecision.Date}
+        value={{ start: null, end: null }}
+        fillRequired={FillRequired.All}
+        showBorderFieldWhenError
+        onValidationChange={onValidationChange}
+        validationRules={{ "both-dates-required": "Wybierz obie daty" }}
+      />,
+    );
+
+    act(() => {
+      ref.current!.validate();
+    });
+
+    const [startInput, endInput] = screen.getAllByRole("textbox");
+    expect(startInput.closest(".dtp")).toHaveAttribute("data-error");
+    expect(endInput.closest(".dtp")).toHaveAttribute("data-error");
+
+    rerender(
+      <DateTimeRange
+        ref={ref}
+        dateTimePrecisions={DateTimePickerPrecision.Date}
+        value={{ start: utc(2026, 6, 1), end: utc(2026, 6, 10) }}
+        fillRequired={FillRequired.All}
+        showBorderFieldWhenError
+        onValidationChange={onValidationChange}
+        validationRules={{ "both-dates-required": "Wybierz obie daty" }}
+      />,
+    );
+
+    expect(startInput.closest(".dtp")).not.toHaveAttribute("data-error");
+    expect(endInput.closest(".dtp")).not.toHaveAttribute("data-error");
+    expect(onValidationChange).toHaveBeenLastCalledWith(
+      expect.objectContaining({ valid: true }),
+    );
+  });
+
+  test("Po validate() brak daty końcowej podświetla tylko pole końcowe", () => {
+    const ref = createRef<DateTimeRangeHandle>();
+    render(
+      <DateTimeRange
+        ref={ref}
+        dateTimePrecisions={DateTimePickerPrecision.Date}
+        value={{ start: utc(2026, 8, 2), end: null }}
+        fillRequired={FillRequired.All}
+        showBorderFieldWhenError
+        validationRules={{ "end-date-required": "Podaj datę końcową w filtrze" }}
+      />,
+    );
+
+    act(() => {
+      ref.current!.validate();
+    });
+
+    const [startInput, endInput] = screen.getAllByRole("textbox");
+    expect(startInput.closest(".dtp")).not.toHaveAttribute("data-error");
+    expect(endInput.closest(".dtp")).toHaveAttribute("data-error");
+  });
 });

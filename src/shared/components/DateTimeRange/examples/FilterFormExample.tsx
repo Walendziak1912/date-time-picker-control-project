@@ -61,7 +61,7 @@ export function FilterFormExample() {
       <p className="m-0 text-color-secondary line-height-3">
         Domyślnie walidacja uruchamia się dopiero po kliknięciu{" "}
         <strong>Wyślij formularz</strong> (<code>ref.validate()</code> -
-        tryb <code>validationMode="submit"</code>). Po{" "}
+        tryb <code>validationMode=&quot;submit&quot;</code>). Po{" "}
         <strong>Wyczyść filtry</strong> wartości i błędy są resetowane (
         <code>ref.reset()</code>) bez ponownej walidacji.
       </p>

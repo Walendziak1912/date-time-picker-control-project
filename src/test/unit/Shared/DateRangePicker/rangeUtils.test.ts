@@ -64,7 +64,7 @@ describe("DateTimeRange repository getMaxEndForStart testy limitu godzinowego or
         expect(maxEnd!.toISOString()).toBe("2026-07-28T00:00:00.000Z");
     });
 
-    test("maxRangeDays=5 w trybie kalendarzowym liczy dni w UTC, nie w strefie lokalnej", () => {
+    test("maxRangeDays=5 w trybie kalendarzowym liczy dni w UTC", () => {
         const start = utc(2026, 8, 23, 0);
         const maxEnd = getMaxEndForStart(start, { maxRangeDays: 5 }, "datetime", "UTC");
         expect(maxEnd!.toISOString()).toBe("2026-09-27T23:59:59.999Z");

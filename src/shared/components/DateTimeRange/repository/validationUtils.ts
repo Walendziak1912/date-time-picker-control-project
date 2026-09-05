@@ -336,7 +336,7 @@ export function buildRangeValidationResult(options: {
     }
   }
 
-  return { valid: true, fields: { start, end } };
+  return { valid: true, fields: { start: VALID_FIELD, end: VALID_FIELD } };
 }
 
 export function resolveRangeFieldErrors(options: {
@@ -344,6 +344,11 @@ export function resolveRangeFieldErrors(options: {
   validationResult: DateTimeRangeValidationResult;
 }): { startHasError: boolean; endHasError: boolean } {
   const { error, validationResult } = options;
+
+  if (validationResult.valid) {
+    return { startHasError: false, endHasError: false };
+  }
+
   const startFieldInvalid = validationResult.fields?.start?.valid === false;
   const endFieldInvalid = validationResult.fields?.end?.valid === false;
   const reason = validationResult.reason;
