@@ -1,5 +1,7 @@
 import { Button } from "primereact/button";
 import { useRef } from "react";
+import { createPortal } from "react-dom";
+import { resolvePopoverAppendTarget } from "../repository/popoverAppend";
 import { AnalogClock } from "./AnalogClock";
 import { Calendar } from "./Calendar";
 import { CalendarIcon } from "./CalendarIcon";
@@ -29,6 +31,7 @@ type DateTimePickerShellProps = {
     | "showTextUnderFieldWhenError"
     | "showBorderFieldWhenError"
     | "closeOnSelect"
+    | "appendTo"
     | "onViewChange"
     | "onYearChange"
   >;
@@ -54,10 +57,14 @@ export function DateTimePickerShell({
     showTextUnderFieldWhenError = false,
     showBorderFieldWhenError = false,
     closeOnSelect = false,
+    appendTo,
     onViewChange,
     onYearChange,
     locale,
   } = shellProps;
+
+  const popoverAppendTarget = resolvePopoverAppendTarget(appendTo);
+  const popoverPortaled = popoverAppendTarget !== "inline";
 
   const {
     rootRef,
@@ -114,8 +121,132 @@ export function DateTimePickerShell({
 
   const popoverRef = useRef<HTMLDivElement>(null);
 
-  usePopoverDismiss(open, rootRef, handleDismiss, handleCancel);
-  const popoverPlacement = usePopoverPlacement(open, rootRef, popoverRef);
+  usePopoverDismiss(open, rootRef, popoverRef, handleDismiss, handleCancel);
+  const { placement: popoverPlacement, fixedStyle: popoverFixedStyle } =
+    usePopoverPlacement(open, rootRef, popoverRef, popoverPortaled);
+
+  const popover =
+    open ? (
+      <div
+        ref={popoverRef}
+        className={[
+          "dtp-popover",
+          popoverPortaled ? "dtp-popover--portaled" : "",
+        ]
+          .filter(Boolean)
+          .join(" ")}
+        role="dialog"
+        aria-modal="false"
+        aria-label={text.dialog}
+        data-mode={mode}
+        data-seconds={
+          resolvedShowSeconds && mode !== "date" ? true : undefined
+        }
+        data-milliseconds={
+          resolvedShowMilliseconds && mode !== "date" ? true : undefined
+        }
+        data-placement={popoverPlacement}
+        style={popoverFixedStyle}
+        onMouseDown={onPopoverMouseDown}
+      >
+        {showPrecisionSwitcher && activePrecision != null && (
+          <PrecisionSwitcher
+            options={availablePrecisions}
+            value={activePrecision}
+            locale={locale ?? "pl-PL"}
+            precisionLabels={text.precisionLabels}
+            disabled={disabled || readOnly}
+            onChange={handlePrecisionChange}
+          />
+        )}
+        <div
+          className={[
+            "dtp-views",
+            showCalendar && !showTime ? "dtp-views--date-only" : "",
+            !showCalendar && showTime ? "dtp-views--time-only" : "",
+          ]
+            .filter(Boolean)
+            .join(" ")}
+        >
+          {showCalendar && (
+            <Calendar
+              month={month}
+              value={draft}
+              locale={locale ?? "pl-PL"}
+              timezone={timezone}
+              text={text}
+              showDaysOutsideCurrentMonth={showDaysOutsideCurrentMonth}
+              disableHighlightToday={disableHighlightToday}
+              enabledViews={calendarViews}
+              openTo={calendarOpenTo}
+              yearsOrder={yearsOrder}
+              yearsPerRow={yearsPerRow}
+              monthsPerRow={monthsPerRow}
+              dateConstraints={dateConstraints}
+              onMonthChange={handleMonthChange}
+              onSelectDay={handleSelectDay}
+              onViewChange={(v) => onViewChange?.(v as DateTimePickerView)}
+              onYearChange={onYearChange}
+            />
+          )}
+          {showTime && timeVariant === "digital" && (
+            <DigitalClock
+              value={draft}
+              timezone={timezone}
+              ampm={ampm}
+              showSeconds={resolvedShowSeconds}
+              showMilliseconds={resolvedShowMilliseconds}
+              hourStep={hourStep}
+              minuteStep={minuteStep}
+              secondStep={secondStep}
+              millisecondStep={millisecondStep}
+              timeConstraints={timeConstraints}
+              onChange={handleTimeChange}
+              text={text}
+            />
+          )}
+          {showTime && timeVariant === "analog" && (
+            <AnalogClock
+              value={draft}
+              timezone={timezone}
+              ampm={ampm}
+              showSeconds={resolvedShowSeconds}
+              showMilliseconds={resolvedShowMilliseconds}
+              minuteStep={minuteStep}
+              secondStep={secondStep}
+              millisecondStep={millisecondStep}
+              timeConstraints={timeConstraints}
+              onChange={handleTimeChange}
+              text={text}
+            />
+          )}
+        </div>
+        {!closeOnSelect && (
+          <div className="dtp-actions">
+            {showCalendar && (
+              <Button
+                type="button"
+                className="dtp-today-btn"
+                label={text.today}
+                text
+                disabled={isTodayDisabled}
+                onClick={handleToday}
+              />
+            )}
+            <div className="dtp-actions-end">
+              <Button
+                type="button"
+                label={text.cancel}
+                outlined
+                severity="secondary"
+                onClick={handleCancel}
+              />
+              <Button type="button" label={text.ok} onClick={handleOk} />
+            </div>
+          </div>
+        )}
+      </div>
+    ) : null;
 
   return (
     <div
@@ -175,7 +306,7 @@ export function DateTimePickerShell({
             ×
           </button>
         )}
-        <button
+        <Button
           type="button"
           className="dtp-open"
           aria-label={text.openPicker}
@@ -183,7 +314,7 @@ export function DateTimePickerShell({
           onClick={handleOpen}
         >
           <CalendarIcon />
-        </button>
+        </Button>
       </div>
       {showTextUnderFieldWhenError && hasError && fieldErrorMessage != null && (
         <div className="dtp-field-error" role="alert">
@@ -191,114 +322,9 @@ export function DateTimePickerShell({
         </div>
       )}
 
-      {open && (
-        <div
-          ref={popoverRef}
-          className="dtp-popover"
-          role="dialog"
-          aria-modal="false"
-          aria-label={text.dialog}
-          data-placement={popoverPlacement}
-          onMouseDown={onPopoverMouseDown}
-        >
-          {showPrecisionSwitcher && activePrecision != null && (
-            <PrecisionSwitcher
-              options={availablePrecisions}
-              value={activePrecision}
-              locale={locale ?? "pl-PL"}
-              precisionLabels={text.precisionLabels}
-              disabled={disabled || readOnly}
-              onChange={handlePrecisionChange}
-            />
-          )}
-          <div
-            className={[
-              "dtp-views",
-              showCalendar && !showTime ? "dtp-views--date-only" : "",
-              !showCalendar && showTime ? "dtp-views--time-only" : "",
-            ]
-              .filter(Boolean)
-              .join(" ")}
-          >
-            {showCalendar && (
-              <Calendar
-                month={month}
-                value={draft}
-                locale={locale ?? "pl-PL"}
-                timezone={timezone}
-                text={text}
-                showDaysOutsideCurrentMonth={showDaysOutsideCurrentMonth}
-                disableHighlightToday={disableHighlightToday}
-                enabledViews={calendarViews}
-                openTo={calendarOpenTo}
-                yearsOrder={yearsOrder}
-                yearsPerRow={yearsPerRow}
-                monthsPerRow={monthsPerRow}
-                dateConstraints={dateConstraints}
-                onMonthChange={handleMonthChange}
-                onSelectDay={handleSelectDay}
-                onViewChange={(v) => onViewChange?.(v as DateTimePickerView)}
-                onYearChange={onYearChange}
-              />
-            )}
-            {showTime && timeVariant === "digital" && (
-              <DigitalClock
-                value={draft}
-                timezone={timezone}
-                ampm={ampm}
-                showSeconds={resolvedShowSeconds}
-                showMilliseconds={resolvedShowMilliseconds}
-                hourStep={hourStep}
-                minuteStep={minuteStep}
-                secondStep={secondStep}
-                millisecondStep={millisecondStep}
-                timeConstraints={timeConstraints}
-                onChange={handleTimeChange}
-                text={text}
-              />
-            )}
-            {showTime && timeVariant === "analog" && (
-              <AnalogClock
-                value={draft}
-                timezone={timezone}
-                ampm={ampm}
-                showSeconds={resolvedShowSeconds}
-                showMilliseconds={resolvedShowMilliseconds}
-                minuteStep={minuteStep}
-                secondStep={secondStep}
-                millisecondStep={millisecondStep}
-                timeConstraints={timeConstraints}
-                onChange={handleTimeChange}
-                text={text}
-              />
-            )}
-          </div>
-          {!closeOnSelect && (
-            <div className="dtp-actions">
-              {showCalendar && (
-                <Button
-                  type="button"
-                  className="dtp-today-btn"
-                  label={text.today}
-                  text
-                  disabled={isTodayDisabled}
-                  onClick={handleToday}
-                />
-              )}
-              <div className="dtp-actions-end">
-                <Button
-                  type="button"
-                  label={text.cancel}
-                  outlined
-                  severity="secondary"
-                  onClick={handleCancel}
-                />
-                <Button type="button" label={text.ok} onClick={handleOk} />
-              </div>
-            </div>
-          )}
-        </div>
-      )}
+      {popoverPortaled && popover
+        ? createPortal(popover, popoverAppendTarget)
+        : popover}
     </div>
   );
 }

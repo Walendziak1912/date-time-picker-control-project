@@ -1,14 +1,32 @@
-import { useCallback, useEffect, useLayoutEffect, useState, type RefObject } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useState,
+  type CSSProperties,
+  type RefObject,
+} from 'react'
 
 export type PopoverPlacement = 'bottom' | 'top'
 
+export type PopoverLayout = {
+  placement: PopoverPlacement
+  /** Ustawiane przy renderze w portalu (`position: fixed`). */
+  fixedStyle?: CSSProperties
+}
+
 const VIEWPORT_MARGIN = 8
+const POPOVER_GAP_PX = 4
+/** Nad typowymi overlay PrimeReact (np. Dialog ~1100). */
+export const POPOVER_PORTAL_Z_INDEX = 1101
+
 export function usePopoverPlacement(
   open: boolean,
   rootRef: RefObject<HTMLElement | null>,
   popoverRef: RefObject<HTMLElement | null>,
-): PopoverPlacement {
-  const [placement, setPlacement] = useState<PopoverPlacement>('bottom')
+  portaled: boolean,
+): PopoverLayout {
+  const [layout, setLayout] = useState<PopoverLayout>({ placement: 'bottom' })
 
   const updatePlacement = useCallback(() => {
     const root = rootRef.current
@@ -23,16 +41,34 @@ export function usePopoverPlacement(
     const spaceAbove = fieldRect.top - VIEWPORT_MARGIN
 
     // Rozwiń w górę tylko gdy poniżej brakuje miejsca, a powyżej jest go więcej
-    if (popoverHeight > spaceBelow && spaceAbove > spaceBelow) {
-      setPlacement('top')
-    } else {
-      setPlacement('bottom')
+    const placement: PopoverPlacement =
+      popoverHeight > spaceBelow && spaceAbove > spaceBelow ? 'top' : 'bottom'
+
+    if (!portaled) {
+      setLayout({ placement })
+      return
     }
-  }, [rootRef, popoverRef])
+
+    const top =
+      placement === 'bottom'
+        ? fieldRect.bottom + POPOVER_GAP_PX
+        : fieldRect.top - popoverHeight - POPOVER_GAP_PX
+
+    setLayout({
+      placement,
+      fixedStyle: {
+        position: 'fixed',
+        top,
+        left: fieldRect.left,
+        minWidth: fieldRect.width,
+        zIndex: POPOVER_PORTAL_Z_INDEX,
+      },
+    })
+  }, [rootRef, popoverRef, portaled])
 
   useLayoutEffect(() => {
     if (!open) {
-      setPlacement('bottom')
+      setLayout({ placement: 'bottom' })
       return
     }
     updatePlacement()
@@ -49,5 +85,5 @@ export function usePopoverPlacement(
     }
   }, [open, updatePlacement])
 
-  return placement
+  return layout
 }

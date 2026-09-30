@@ -30,7 +30,7 @@ export function FormWithValidationExample() {
 
   return (
     <div className="flex flex-column gap-3 p-4 h-full border-1 surface-border border-round surface-card">
-      <h4 className="m-0">Formularz z walidacją przy Zapisz</h4>
+      <h4 className="m-0">Formularz z walidacją przy Zap  isz</h4>
       <form
         className="flex flex-column gap-3 align-items-start"
         onSubmit={(event) => {

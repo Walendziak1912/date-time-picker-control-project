@@ -72,7 +72,7 @@ export function FormWithValidationExample() {
           <DateTimeRange
             ref={rangeAllRef}
             dateTimePrecisions={[
-              DateTimePickerPrecision.Date,
+              DateTimePickerPrecision.DateTime,
               DateTimePickerPrecision.DateTimeMilliseconds,
             ]}
             value={rangeAll}

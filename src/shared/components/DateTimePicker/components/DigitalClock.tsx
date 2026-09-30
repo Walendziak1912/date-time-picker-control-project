@@ -160,7 +160,7 @@ export function DigitalClock({
     items: number[],
     selected: number,
     view: ClockView,
-    listRef: RefObject<HTMLUListElement | null>,
+    listRef: RefObject<HTMLUListElement>,
     onSelect: (n: number) => void,
     pad = 2,
   ) => (

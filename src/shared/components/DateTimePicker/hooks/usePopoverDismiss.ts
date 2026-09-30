@@ -10,6 +10,7 @@ function isInsideOverlayPortal(target: Node): boolean {
 export function usePopoverDismiss(
   open: boolean,
   rootRef: RefObject<HTMLElement | null>,
+  popoverRef: RefObject<HTMLElement | null>,
   onDismiss: () => void,
   onEscape?: () => void,
 ) {
@@ -19,6 +20,7 @@ export function usePopoverDismiss(
     const onPointerDown = (event: PointerEvent) => {
       const target = event.target as Node
       if (rootRef.current?.contains(target)) return
+      if (popoverRef.current?.contains(target)) return
       if (isInsideOverlayPortal(target)) return
       onDismiss()
     }
@@ -32,5 +34,5 @@ export function usePopoverDismiss(
       document.removeEventListener('pointerdown', onPointerDown)
       document.removeEventListener('keydown', onKeyDown)
     }
-  }, [open, onDismiss, onEscape, rootRef])
+  }, [open, onDismiss, onEscape, rootRef, popoverRef])
 }

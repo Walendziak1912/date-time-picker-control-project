@@ -1,4 +1,5 @@
-.dtp {
+.dtp,
+.dtp-popover {
   /* PrimeReact Lara Light Blue */
   --dtp-primary: #3b82f6;
   --dtp-primary-text: #ffffff;
@@ -21,9 +22,10 @@
   --dtp-icon-hover: #374151;
   --dtp-analog-size: 200px;
   --dtp-time-header-size: 1.25rem;
+}
 
-  position: relative;
-  display: inline-flex;
+.dtp {
+  position: relative;  display: inline-flex;
   flex-direction: column;
   align-items: flex-start;
   gap: 0.35rem;
@@ -67,9 +69,13 @@
   --dtp-input-min: 22ch;
 }
 
-.dtp[data-mode='time'] .dtp-popover {
+.dtp-popover[data-mode='time'] {
   min-width: 0;
   width: fit-content;
+}
+
+.dtp-popover[data-milliseconds] {
+  --dtp-time-header-size: 0.875rem;
 }
 
 .dtp[data-disabled] {
@@ -208,8 +214,13 @@
   max-width: min(92vw, 42rem);
   border: 0 none;
   border-radius: var(--dtp-radius);
-  background: var(--dtp-bg);
+  background: var(--dtp-bg, #ffffff);
   color: var(--dtp-text);
+  font-family: var(--font-family, 'Inter Variable', sans-serif);
+  font-feature-settings: var(--font-feature-settings, 'cv02', 'cv03', 'cv04', 'cv11');
+  font-variation-settings: normal;
+  font-size: 1rem;
+  line-height: 1.5;
   box-shadow: var(--dtp-shadow);
   padding: 0.5rem;
   animation: dtp-in 140ms ease-out;
@@ -217,9 +228,13 @@
   box-sizing: border-box;
 }
 
-.dtp-popover[data-placement='top'] {
+.dtp-popover[data-placement='top']:not(.dtp-popover--portaled) {
   top: auto;
   bottom: calc(100% + 0.25rem);
+  animation: dtp-in-up 140ms ease-out;
+}
+
+.dtp-popover--portaled[data-placement='top'] {
   animation: dtp-in-up 140ms ease-out;
 }
 
@@ -519,11 +534,13 @@
   font-weight: 600;
 }
 
-.dtp[data-milliseconds] .dtp-time-toolbar {
+.dtp[data-milliseconds] .dtp-time-toolbar,
+.dtp-popover[data-milliseconds] .dtp-time-toolbar {
   gap: 0.125rem;
 }
 
-.dtp[data-milliseconds] .dtp-time-tab {
+.dtp[data-milliseconds] .dtp-time-tab,
+.dtp-popover[data-milliseconds] .dtp-time-tab {
   padding: 0.1rem 0.2rem;
 }
 
@@ -703,7 +720,7 @@
 .dtp-precision-switch {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: left;
   gap: 0.75rem;
   padding: 0.5rem 0.75rem;
   border-bottom: 1px solid var(--dtp-divider);

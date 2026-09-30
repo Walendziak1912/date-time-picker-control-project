@@ -103,7 +103,6 @@ export function getDefaultPrecisionLabel(
             return pl ? "Milisekundy" : "Milliseconds";
     }
 }
-
 export function adjustValueForPrecisionChange(
     value: Date | null,
     from: DateTimePickerPrecisionValue,

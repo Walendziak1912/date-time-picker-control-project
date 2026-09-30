@@ -109,6 +109,7 @@ export type DateTimePickerSharedProps = {
   monthsPerRow?: 3 | 4;
   timeVariant?: TimePickerVariant;
   className?: string;
+  appendTo?: HTMLElement | "self"; //self opcja to panel pozostaje w drzewie DOM komponeentu domyślnie document.body aby panel nie był ucinany przez `overflow` rodzica
   locale?: SupportedLocale;
   localeText?: DateTimePickerLocaleText;
   error?: boolean;
